@@ -1,0 +1,241 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+FOLLOW TRACKING - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This action records unique follow events for the active stream and increments a
+separate stream-wide follower total.
+
+A follower is only added once to analytics.follows, which prevents duplicate event
+delivery from inflating the report while preserving the follower name for the
+end-of-stream support overview.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: FOLLOWER EXTRACTION
+--------------------------------
+- Searches userLogin, userName, and user for the follower account.
+- Normalizes the selected username.
+
+STEP 2: ACCOUNT VALIDATION
+--------------------------------
+- Skips blank names and accounts listed in ExcludedUsers.
+
+STEP 3: DUPLICATE PREVENTION
+--------------------------------
+- Loads analytics.follows and stops when the follower is already present.
+
+STEP 4: FOLLOW STORAGE
+--------------------------------
+- Adds the follower with a value of one and saves the dictionary.
+- Increments analytics.totalFollows and logs the new total.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.follows
+--------------------------------
+JSON dictionary containing each unique follower recorded this stream.
+
+analytics.totalFollows
+--------------------------------
+Integer count of unique follow events accepted by this action.
+
+ExcludedUsers
+--------------------------------
+Accounts that should be ignored by follower analytics.
+
+userLogin / userName / user
+--------------------------------
+Supported trigger fields used to identify the follower.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster’s Twitch login.
+- Replace "botname" with the channel’s custom bot login.
+- Keep, remove, or replace "nightbot", "streamelements", "streamlabs", and "sery_bot" to match the services used by the channel.
+- Leave the ExcludedUsers variable name unchanged unless every reference is updated.
+
+FOLLOW EVENT
+--------------------------------
+- Attach this action to the Twitch follow trigger and ensure it supplies a username field.
+
+VARIABLE NAMES
+--------------------------------
+- Preserve analytics.follows and analytics.totalFollows for Stream Suite reporting compatibility.
+
+DUPLICATE POLICY
+--------------------------------
+- Remove the existing-key check only when repeated follow events should be counted intentionally.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+FOLLOW IS NOT ADDED
+--------------------------------
+- Check whether the username already exists in analytics.follows.
+- Verify the follower is not listed in ExcludedUsers.
+
+TOTAL DOES NOT MATCH DICTIONARY
+--------------------------------
+- Inspect analytics.totalFollows for an invalid prior value or another writer.
+- Reset both follow variables together at stream start.
+
+NO USERNAME FOUND
+--------------------------------
+- Confirm the trigger provides userLogin, userName, or user.
+
+FOLLOW DATA RESTARTS
+--------------------------------
+- Review the deserialization warning and repair malformed analytics.follows JSON.
+
+==============================================================================
+*/
+// Trigger: Twitch Follow
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string FollowsKey = "analytics.follows";
+    private const string TotalFollowsKey = "analytics.totalFollows";
+
+    private static readonly string[] ExcludedUsers =
+    {
+        "streamername",
+        "botname",
+        "nightbot",
+        "streamelements",
+        "streamlabs",
+        "sery_bot"
+    };
+
+    private bool IsExcluded(string user) =>
+        ExcludedUsers.Contains(user, StringComparer.OrdinalIgnoreCase);
+
+    public bool Execute()
+    {
+        // FIX 4: Guard against null args
+        if (args == null)
+        {
+            CPH.LogWarn("Follow Tracking: args is null, skipping.");
+            return true;
+        }
+
+        // FIX 2: Reordered priority — userLogin first as most reliable on follow events,
+        //         using a loop that stops at the first valid value
+        string userRaw = null;
+        string[] userKeys = { "userLogin", "userName", "user" };
+        foreach (var key in userKeys)
+        {
+            if (args.ContainsKey(key))
+            {
+                var val = args[key]?.ToString();
+                if (!string.IsNullOrWhiteSpace(val)) { userRaw = val; break; }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(userRaw))
+        {
+            CPH.LogWarn("Follow Tracking: No username found in args, skipping.");
+            return true;
+        }
+
+        string user = Normalize(userRaw);
+
+        if (string.IsNullOrWhiteSpace(user))
+        {
+            CPH.LogWarn("Follow Tracking: Username normalized to empty, skipping.");
+            return true;
+        }
+
+        // FIX 7: Log excluded user skips so they're visible in the log
+        if (IsExcluded(user))
+        {
+            CPH.LogInfo($"Follow Tracking: Skipping excluded user '{user}'.");
+            return true;
+        }
+
+        // FIX 3: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+        var follows = GetDict(FollowsKey);
+
+        // FIX 5: A follow is a one-time event per user — record as 1, not a running count.
+        //         If the same user triggers this twice (re-follow, event replay), log a warning
+        //         but don't increment so the data stays accurate.
+        if (follows.ContainsKey(user))
+        {
+            CPH.LogWarn($"Follow Tracking: '{user}' already has a follow entry this stream. Possible duplicate event — skipping increment.");
+            return true;
+        }
+
+        follows[user] = 1;
+        SaveDict(FollowsKey, follows);
+
+        // Update total follows
+        int total = 0;
+        try
+        {
+            var rawTotal = CPH.GetGlobalVar<object>(TotalFollowsKey, true);
+            if (rawTotal != null)
+                total = Convert.ToInt32(rawTotal);
+        }
+        catch
+        {
+            CPH.LogWarn("Follow Tracking: Could not parse existing total, resetting to 0.");
+            total = 0;
+        }
+
+        total++;
+        CPH.SetGlobalVar(TotalFollowsKey, total, true);
+
+        CPH.LogInfo($"Follow Tracking: Logged follow from '{user}'. Stream total follows: {total}.");
+
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+
+    // FIX 3: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var raw = JsonConvert.DeserializeObject<Dictionary<string, int>>(json)
+                      ?? new Dictionary<string, int>();
+            var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in raw)
+                dict[kv.Key] = kv.Value;
+            return dict;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn($"Follow Tracking: Failed to deserialize '{key}'. Error: {ex.Message}");
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private void SaveDict(string key, Dictionary<string, int> dict)
+    {
+        CPH.SetGlobalVar(key, JsonConvert.SerializeObject(dict), true);
+    }
+}
