@@ -1,0 +1,152 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+PATS STATS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This lookup action reports the number of pats a viewer has given and received.
+
+The command defaults to the invoker but accepts another username as its second word.
+Before displaying results, it verifies that the selected account is present in the
+current SeenUsers attendance dictionary.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: TARGET SELECTION
+--------------------------------
+- Reads user and rawInput from the command trigger.
+- Uses the invoker as the default target or the supplied second word when present.
+
+STEP 2: ATTENDANCE CHECK
+--------------------------------
+- Normalizes the target and confirms it appears in SeenUsers.
+
+STEP 3: PAT DATA LOOKUP
+--------------------------------
+- Loads PatCounts and PatGiven.
+- Uses zero for a missing giver or receiver entry.
+
+STEP 4: RESULT MESSAGE
+--------------------------------
+- Posts both values for the selected target to chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+PatCounts
+--------------------------------
+Dictionary of pats received by each username.
+
+PatGiven
+--------------------------------
+Dictionary of pats sent by each username.
+
+SeenUsers
+--------------------------------
+Current-stream attendance list required for a valid lookup.
+
+targetRaw / targetNorm
+--------------------------------
+Display and normalized forms of the selected viewer.
+
+rawInput
+--------------------------------
+Command text used to extract an optional target.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND TRIGGER
+--------------------------------
+- Connect the action to the desired pat-stat command.
+
+RESULT WORDING
+--------------------------------
+- Edit the final chat response and the missing-user response.
+- Preserve givenCount and receivedCount where the totals should appear.
+
+ATTENDANCE LIMIT
+--------------------------------
+- Remove the SeenUsers requirement only when all stored users should be searchable.
+
+VARIABLE NAMES
+--------------------------------
+- Keep PatCounts and PatGiven synchronized with the tracker and leaderboard.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+TARGET IS REPORTED AS MISSING
+--------------------------------
+- Confirm the target has participated in the current stream.
+- Use the login name and remove extra words after the username.
+
+STATS STAY AT ZERO
+--------------------------------
+- Verify Pats Tracker writes to PatCounts and PatGiven rather than a different key.
+
+SELF LOOKUP FAILS
+--------------------------------
+- Confirm the trigger provides user and that the normalized name exists in SeenUsers.
+
+JSON LOAD ERROR
+--------------------------------
+- Inspect the pat dictionaries for valid serialized integer values.
+
+==============================================================================
+*/
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string PatsKey = "PatCounts";
+    private const string PatsGivenKey = "PatGiven";
+    private const string SeenUsersKey = "SeenUsers";
+    public bool Execute()
+    {
+        var invokerRaw = (string)args["user"];
+        var rawInput = args.ContainsKey("rawInput") ? args["rawInput"]?.ToString() ?? "" : "";
+        var parts = rawInput.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        // Default: self lookup
+        string targetRaw = invokerRaw;
+        // If user typed a username, grab the next word
+        if (parts.Length > 1)
+            targetRaw = parts[1].Trim().TrimStart('@');
+        var targetNorm = Normalize(targetRaw);
+        var patsReceived = GetDict(PatsKey);
+        var patsGiven = GetDict(PatsGivenKey);
+        var seen = GetDict(SeenUsersKey);
+        if (!seen.ContainsKey(targetNorm))
+        {
+            CPH.SendMessage($"@{invokerRaw}, I tried to check @{targetRaw}'s stats but they’re hiding under a mountain of plushies! 🧸");
+            return true;
+        }
+
+        int receivedCount = patsReceived.ContainsKey(targetNorm) ? patsReceived[targetNorm] : 0;
+        int givenCount = patsGiven.ContainsKey(targetNorm) ? patsGiven[targetNorm] : 0;
+        CPH.SendMessage($"@{targetRaw} has given {givenCount} pats and received {receivedCount} pats!");
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        return JsonConvert.DeserializeObject<Dictionary<string, int>>(json) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    }
+}
