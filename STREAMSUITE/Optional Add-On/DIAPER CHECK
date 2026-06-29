@@ -1,0 +1,205 @@
+/* ==============================================================================
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+DIAPER CHECK - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This playful command generates randomized soggy and stinky percentages for the
+invoking viewer or for another attendance-verified viewer named in the command.
+
+It uses SeenUsers as an eligibility gate, cleans the target username, selects a
+response category from the two random rolls, and sends the completed result to chat.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: COMMAND TARGETING
+--------------------------------
+- Reads userName and rawInput from the command event.
+- Uses the invoker as the target when no separate username is supplied.
+
+STEP 2: USERNAME CLEANUP
+--------------------------------
+- Removes a leading @ and trims common trailing punctuation from the target.
+
+STEP 3: ATTENDANCE VALIDATION
+--------------------------------
+- Loads SeenUsers and blocks the command when the selected target has not checked in.
+
+STEP 4: RANDOM ROLLS
+--------------------------------
+- Generates independent soggy and stinky values from 0 through 100.
+
+STEP 5: RESPONSE SELECTION
+--------------------------------
+- Uses GetPlayfulMessage to choose a phrase for perfect, high, or lower combined results.
+- Sends either the self-check or targeted response to Twitch chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Current-stream attendance dictionary used to verify the selected target.
+
+userName
+--------------------------------
+Command argument identifying the viewer who ran the command.
+
+rawInput
+--------------------------------
+Optional target text supplied after the command.
+
+soggyRoll / stinkyRoll
+--------------------------------
+Random percentages generated independently for the result.
+
+options
+--------------------------------
+Three local phrase pools inside GetPlayfulMessage for the result categories.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND TRIGGER
+--------------------------------
+- Bind the action to the desired diaper-check command and ensure userName and rawInput are supplied.
+
+PLAYFUL PHRASES
+--------------------------------
+- Edit the three options arrays inside GetPlayfulMessage to match the channel’s tone.
+- Keep each category’s meaning aligned with its percentage conditions.
+
+RESULT WORDING
+--------------------------------
+- Customize the failed-attendance message and the two successful CPH.SendMessage lines.
+- Preserve the username and percentage interpolations wherever those values should appear.
+
+ATTENDANCE REQUIREMENT
+--------------------------------
+- Keep SeenUsers unchanged to share eligibility with Attendance Check, or deliberately replace the gate if attendance should not be required.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+TARGET IS REJECTED
+--------------------------------
+- Confirm the target already exists in SeenUsers and use their Twitch login name.
+
+COMMAND CHECKS THE WRONG USER
+--------------------------------
+- Verify rawInput contains only the intended first target token and no command prefix.
+
+PHRASE CATEGORY LOOKS WRONG
+--------------------------------
+- Review the 100/100 and 51–100 threshold conditions in GetPlayfulMessage.
+
+NO OUTPUT
+--------------------------------
+- Confirm the trigger supplies userName and that SeenUsers contains valid dictionary JSON.
+
+==============================================================================
+*/
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private static Random rng = new Random();
+    public bool Execute()
+    {
+        string triggeringUser = args.ContainsKey("userName") ? args["userName"].ToString() : "";
+        string rawInput = args.ContainsKey("rawInput") ? args["rawInput"].ToString() : "";
+        string[] parts = rawInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        // If no argument, default to the triggering user (self-check)
+        string targetUser = string.IsNullOrWhiteSpace(rawInput) ? triggeringUser : parts[0];
+        // --- Normalize targetUser inline ---
+        if (targetUser.StartsWith("@"))
+            targetUser = targetUser.Substring(1);
+        char[] trimChars =
+        {
+            ',',
+            '.',
+            '!',
+            '?',
+            ':',
+            ';',
+            ')',
+            ']',
+            '}',
+            '\"',
+            '\''
+        };
+        targetUser = targetUser.TrimEnd(trimChars);
+        // Load SeenUsers dictionary from global variable
+        var seenJson = CPH.GetGlobalVar<string>("SeenUsers", true);
+        var seenDict = string.IsNullOrWhiteSpace(seenJson) ? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) : JsonConvert.DeserializeObject<Dictionary<string, int>>(seenJson) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        if (!seenDict.ContainsKey(targetUser))
+        {
+            CPH.SendMessage($"🛑 @{triggeringUser} DIAPER CHECK FAILED! @{targetUser} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        // Rolls
+        int soggyRoll = rng.Next(0, 101);
+        int stinkyRoll = rng.Next(0, 101);
+        string playfulMsg = GetPlayfulMessage(soggyRoll, stinkyRoll);
+        // Self-check only if no argument was provided
+        bool noArgument = string.IsNullOrWhiteSpace(rawInput);
+        if (noArgument)
+        {
+            CPH.SendMessage($"@{triggeringUser} is {soggyRoll}% soggy & {stinkyRoll}% stinky! {playfulMsg}");
+        }
+        else
+        {
+            CPH.SendMessage($"@{targetUser} is {soggyRoll}% soggy & {stinkyRoll}% stinky! {playfulMsg}");
+        }
+
+        return true;
+    }
+
+    private static string GetPlayfulMessage(int soggy, int stinky)
+    {
+        var rand = new Random();
+        if (soggy == 100 && stinky == 100)
+        {
+            var options = new[]
+            {
+                "Time for a much-needed change!",
+                "Good thing I caught this before it was too late!",
+                "Wow this one got really filled up!"
+            };
+            return options[rand.Next(options.Length)];
+        }
+        else if (soggy >= 51 && soggy <= 100 && stinky >= 51 && stinky <= 100)
+        {
+            var options = new[]
+            {
+                "These pamps are getting pretty heavy!",
+                "Someone's been putting their pamps to good use!",
+                "Looks like these pamps are doing their job well!",
+            };
+            return options[rand.Next(options.Length)];
+        }
+        else
+        {
+            var options = new[]
+            {
+                "Not quite full enough, I'd say.",
+                "Don't worry, these can handle much more!",
+                "These have PLENTY of room left!"
+            };
+            return options[rand.Next(options.Length)];
+        }
+    }
+}
