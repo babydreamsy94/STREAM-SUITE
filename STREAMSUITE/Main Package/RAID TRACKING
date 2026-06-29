@@ -1,0 +1,216 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+RAID TRACKING - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This analytics action stores the username of each unique incoming raider during the
+current stream.
+
+It normalizes the raider name, ignores excluded accounts, prevents repeated entries
+from the same channel, and leaves a clean list for the Stream End support report.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: RAIDER LOOKUP
+--------------------------------
+- Reads the first available value from userLogin, userName, or user.
+- Normalizes the account name.
+
+STEP 2: ACCOUNT SCREENING
+--------------------------------
+- Skips empty names and accounts listed in ExcludedUsers.
+
+STEP 3: LIST LOADING
+--------------------------------
+- Deserializes analytics.raids into a list of usernames.
+- Starts with an empty list when stored data cannot be read.
+
+STEP 4: DUPLICATE CHECK
+--------------------------------
+- Stops when the normalized raider already appears in the list.
+
+STEP 5: RAID STORAGE
+--------------------------------
+- Adds the new raider, saves the list, and logs the current raid count.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.raids
+--------------------------------
+JSON list of unique raider usernames recorded this stream.
+
+ExcludedUsers
+--------------------------------
+Accounts omitted from raid analytics.
+
+userLogin / userName / user
+--------------------------------
+Supported incoming event fields used for the raider name.
+
+raids
+--------------------------------
+In-memory list used for duplicate checking and persistence.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster’s Twitch login.
+- Replace "botname" with the channel’s custom bot login.
+- Keep, remove, or replace "nightbot", "streamelements", "streamlabs", and "sery_bot" to match the services used by the channel.
+- Leave the ExcludedUsers variable name unchanged unless every reference is updated.
+
+RAID TRIGGER
+--------------------------------
+- Attach this action to the incoming Twitch raid event.
+
+DUPLICATE POLICY
+--------------------------------
+- Keep the existing Contains check for one entry per raider per stream.
+- Remove it only when repeated raids from the same account should be listed separately.
+
+VARIABLE NAME
+--------------------------------
+- Keep analytics.raids unchanged for Stream Start, Stream End, and debug reset compatibility.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+RAID IS NOT LOGGED
+--------------------------------
+- Confirm the event supplies one of the supported username keys.
+- Check that the raider is not excluded or already present.
+
+RAID LIST RESETS
+--------------------------------
+- Review logs for a deserialization error and ensure analytics.raids contains a JSON array.
+
+STREAM END SHOWS NO RAIDERS
+--------------------------------
+- Verify Stream End reads the same analytics.raids global scope.
+
+DUPLICATE RAID IS MISSING
+--------------------------------
+- This script intentionally records each raider only once per stream.
+
+==============================================================================
+*/
+// Trigger: Twitch Raid
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string RaidsKey = "analytics.raids"; // [ raider1, raider2, ... ]
+
+    private static readonly string[] ExcludedUsers =
+    {
+        "streamername",
+        "botname",
+        "nightbot",
+        "streamelements",
+        "streamlabs",
+        "sery_bot"
+    };
+
+    private bool IsExcluded(string user) =>
+        ExcludedUsers.Contains(user, StringComparer.OrdinalIgnoreCase);
+
+    public bool Execute()
+    {
+        // Guard against null args
+        if (args == null)
+        {
+            CPH.LogWarn("Raid Tracking: args is null, skipping.");
+            return true;
+        }
+
+        //
+        // --- USERNAME EXTRACTION ---
+        //
+        string raiderRaw = null;
+        string[] userKeys = { "userLogin", "userName", "user" };
+
+        foreach (var key in userKeys)
+        {
+            if (args.ContainsKey(key))
+            {
+                var val = args[key]?.ToString();
+                if (!string.IsNullOrWhiteSpace(val))
+                {
+                    raiderRaw = val;
+                    break;
+                }
+            }
+        }
+
+        string raider = Normalize(raiderRaw);
+
+        if (string.IsNullOrWhiteSpace(raider) || IsExcluded(raider))
+        {
+            CPH.LogWarn("Raid Tracking: Skipping raid due to empty or excluded raider username.");
+            return true;
+        }
+
+        //
+        // --- STORE RAID EVENT ---
+        //
+        var raids = GetList(RaidsKey);
+
+        // FIX 1: Warn on duplicate but skip the add so the raider doesn't
+        //         appear twice in the end-of-stream summary
+        if (raids.Contains(raider, StringComparer.OrdinalIgnoreCase))
+        {
+            CPH.LogWarn($"Raid Tracking: '{raider}' has already raided this stream; skipping duplicate entry.");
+            return true;
+        }
+
+        raids.Add(raider);
+        SaveList(RaidsKey, raids);
+
+        CPH.LogInfo($"Raid Tracking: Logged raid from {raider}. Total raids now: {raids.Count}.");
+
+        return true;
+    }
+
+    private string Normalize(string s) =>
+        (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+
+    private List<string> GetList(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new List<string>();
+        try
+        {
+            return JsonConvert.DeserializeObject<List<string>>(json)
+                   ?? new List<string>();
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn($"Raid Tracking: Failed to deserialize '{key}', starting fresh. Error: {ex.Message}");
+            return new List<string>();
+        }
+    }
+
+    private void SaveList(string key, List<string> list)
+    {
+        CPH.SetGlobalVar(key, JsonConvert.SerializeObject(list), true);
+    }
+}
