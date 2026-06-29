@@ -1,0 +1,164 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+RESET VARIABLES - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This maintenance action clears the current stream's temporary attendance and
+analytics values while preserving the long-term AttendanceHistory dictionary.
+
+It can be triggered with the disabled-by-default !resetvar command after the
+streamer reviews access permissions. It is intended for controlled testing,
+recovery, or preparing a clean analytics state outside the normal stream-start flow.
+
+[OPTIONAL] - You can also optionally use a button on your Stream Deck for
+easy resets!
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: COMMAND OR ACTION TRIGGER
+--------------------------------
+- Runs when the !resetvar command triggers this action or when the action is executed manually.
+
+STEP 2: ATTENDANCE RESET
+--------------------------------
+- Replaces SeenUsers with an empty JSON dictionary.
+- Does not write to AttendanceHistory.
+
+STEP 3: ANALYTICS RESET
+--------------------------------
+- Clears chat, subscription, follow, bits, and raid session globals.
+- Resets the associated numeric totals to zero.
+
+STEP 4: SUMMARY RETENTION
+--------------------------------
+- Leaves analytics.finalSummaryJson untouched unless its commented reset line is enabled.
+
+STEP 5: CONFIRMATION
+--------------------------------
+- Writes a log entry and posts a chat confirmation message.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Per-stream attendance dictionary cleared by this action.
+
+analytics.chatMessagesByUser / analytics.chatTotalMessages
+--------------------------------
+Current-stream chat analytics reset to empty/zero.
+
+analytics.subs / analytics.totalSubs
+--------------------------------
+Current-stream subscription analytics reset to empty/zero.
+
+analytics.follows / analytics.totalFollows
+--------------------------------
+Current-stream follow analytics reset to empty/zero.
+
+analytics.bits / analytics.totalBits
+--------------------------------
+Current-stream bits analytics reset to empty/zero.
+
+analytics.raids
+--------------------------------
+Current-stream raid collection reset by the script.
+
+analytics.finalSummaryJson
+--------------------------------
+Optional previous report value; its reset line is disabled by default.
+
+!resetvar
+--------------------------------
+Disabled-by-default maintenance command attached to this action.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND ACCESS
+--------------------------------
+- Keep !resetvar disabled until setup is complete.
+- Restrict it to the broadcaster or trusted moderators before enabling it.
+- Change the command name only when its Streamer.bot trigger is updated too.
+
+VARIABLE COVERAGE
+--------------------------------
+- Add analytics.subsDetailed when detailed subscription labels must also be cleared.
+- Add future per-stream keys when new Stream Suite trackers are installed.
+
+RAID RESET FORMAT
+--------------------------------
+- Raid Tracking reads analytics.raids as a JSON list, so use "[]" instead of "{}" for strict compatibility.
+
+SUMMARY RETENTION
+--------------------------------
+- Uncomment the final-summary reset only when the previous generated report should be removed.
+
+CONFIRMATION MESSAGE
+--------------------------------
+- Edit or remove the chat message when maintenance resets should remain silent.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+COMMAND DOES NOT RUN
+--------------------------------
+- Enable both the action and !resetvar command after reviewing permissions.
+- Confirm the action trigger points to the imported !resetvar command ID.
+
+OLD SUB DETAILS REMAIN
+--------------------------------
+- The current code does not clear analytics.subsDetailed; add that key to the subscription block when needed.
+
+RAID TRACKER REPORTS INVALID JSON
+--------------------------------
+- Change the analytics.raids reset value from "{}" to "[]" to match its list format.
+
+LONG-TERM ATTENDANCE DISAPPEARS
+--------------------------------
+- This script should never write AttendanceHistory; inspect other reset actions and restore from backup.
+
+RESET VALUES RETURN IMMEDIATELY
+--------------------------------
+- Another event action may be repopulating the globals after the reset.
+
+==============================================================================
+*/
+public class CPHInline
+{
+    public bool Execute()
+    {
+        // --- Per-stream attendance ---
+        CPH.SetGlobalVar("SeenUsers", "{}", true);
+        // --- Chat analytics ---
+        CPH.SetGlobalVar("analytics.chatMessagesByUser", "{}", true);
+        CPH.SetGlobalVar("analytics.chatTotalMessages", 0, true);
+        // --- Subs analytics ---
+        CPH.SetGlobalVar("analytics.subs", "{}", true);
+        CPH.SetGlobalVar("analytics.totalSubs", 0, true);
+        // --- Follows analytics ---
+        CPH.SetGlobalVar("analytics.follows", "{}", true);
+        CPH.SetGlobalVar("analytics.totalFollows", 0, true);
+        // --- Bits analytics ---
+        CPH.SetGlobalVar("analytics.bits", "{}", true);
+        CPH.SetGlobalVar("analytics.totalBits", 0, true);
+        // --- Raids analytics ---
+        CPH.SetGlobalVar("analytics.raids", "{}", true);
+        // OPTIONAL: Clear final summary (remove if you want to keep last summary)
+        // CPH.SetGlobalVar("analytics.finalSummaryJson", "{}", true);
+        CPH.LogInfo("SAFE RESET COMPLETE: All per-stream variables cleared. AttendanceHistory preserved.");
+        CPH.SendMessage("/me 🔄 Safe Reset Complete! All per-stream data has been cleared without touching long-term attendance history.");
+        return true;
+    }
+}
