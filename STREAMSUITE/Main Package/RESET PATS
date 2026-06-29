@@ -1,0 +1,132 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+PAT RESET - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This broadcaster-only utility clears the dictionary configured by PatStatsKey and
+announces the reset in chat.
+
+It is intended to provide a full pat-stat reset, but the active pat tracker in this
+suite stores its counters under PatCounts and PatGiven, so the configured key should
+be reviewed before deployment.
+
+[OPTIONAL] - You can also optionally use a button on your Stream Deck for
+easy resets!
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: PERMISSION CHECK
+--------------------------------
+- Reads the invoking username and allows only the configured broadcaster.
+
+STEP 2: DICTIONARY RESET
+--------------------------------
+- Creates an empty case-insensitive integer dictionary.
+- Serializes it and writes it to PatStatsKey.
+
+STEP 3: CONFIRMATION MESSAGE
+--------------------------------
+- Posts a successful-reset message to Twitch chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+PatStatsKey
+--------------------------------
+Currently set to PatStats; this is the single global cleared by the script.
+
+PatCounts
+--------------------------------
+Receiver counter used by Pats Tracker, but not cleared by the current reset code.
+
+PatGiven
+--------------------------------
+Giver counter used by Pats Tracker, but not cleared by the current reset code.
+
+user
+--------------------------------
+Invoker checked against the broadcaster username.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+BROADCASTER LOGIN
+--------------------------------
+- Replace streamername with the actual channel owner username.
+
+PAT VARIABLE ALIGNMENT
+--------------------------------
+- Change the reset logic to clear PatCounts and PatGiven when using the included Pats Tracker.
+- Alternatively, update all pat modules to use one shared PatStats structure.
+
+COMMAND TRIGGER
+--------------------------------
+- Keep this action restricted to the broadcaster.
+
+CHAT TEXT
+--------------------------------
+- Customize the denied and completed-reset messages.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+PAT COUNTS DO NOT RESET
+--------------------------------
+- The current code clears PatStats while the tracker writes PatCounts and PatGiven.
+- Align the variable names before relying on this reset.
+
+BROADCASTER IS REJECTED
+--------------------------------
+- Verify the hardcoded username matches the Twitch login.
+
+ONLY GIVEN OR RECEIVED SHOULD RESET
+--------------------------------
+- Split the reset into separate writes to the desired dictionary.
+
+STATS REAPPEAR
+--------------------------------
+- New pat commands will recreate whichever dictionaries the tracker uses.
+
+==============================================================================
+*/
+// Trigger: Command (!resetpats)
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string PatStatsKey = "PatStats";
+
+    public bool Execute()
+    {
+        var invoker = (string)args["user"];
+
+        // ✅ Replace "streamername" with your broadcaster username
+        if (!string.Equals(invoker, "streamername", StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.SendMessage($"@{invoker}, only the broadcaster can use this command 🛑");
+            return true;
+        }
+
+        // Clear PatStats
+        var empty = new Dictionary<string,int>(StringComparer.OrdinalIgnoreCase);
+        var json = JsonConvert.SerializeObject(empty);
+        CPH.SetGlobalVar(PatStatsKey, json, true);
+
+        CPH.SendMessage($"@{invoker} cleared all pat stats!");
+        return true;
+    }
+}
