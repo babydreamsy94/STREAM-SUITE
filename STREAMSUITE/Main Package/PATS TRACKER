@@ -1,0 +1,201 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+PAT TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This command records pats sent by one viewer and pats received by the chosen target.
+
+It supports both self-pats and pats directed at another attendee, updates two
+separate dictionaries, then chooses a randomized response containing the receiver’s
+new total.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: TARGET PREPARATION
+--------------------------------
+- Reads the command input, removes a leading @, and defaults an empty target to the invoker.
+- Normalizes invoker and target names.
+
+STEP 2: TARGET ELIGIBILITY
+--------------------------------
+- Allows self-pats directly.
+- Requires a separate target to appear in SeenUsers.
+
+STEP 3: DUAL COUNTER UPDATE
+--------------------------------
+- Increments PatCounts for the target.
+- Increments PatGiven for the invoker.
+
+STEP 4: MESSAGE SELECTION
+--------------------------------
+- Chooses from selfPhrases for a self-pat or otherPhrases for another viewer.
+- Sends the randomized result with the updated received count.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+PatCounts
+--------------------------------
+Dictionary tracking how many pats each viewer has received.
+
+PatGiven
+--------------------------------
+Dictionary tracking how many pats each viewer has given.
+
+SeenUsers
+--------------------------------
+Attendance dictionary checked for non-self targets.
+
+selfPhrases
+--------------------------------
+Randomized messages used when the invoker pats themselves.
+
+otherPhrases
+--------------------------------
+Randomized messages used when the invoker pats another viewer.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND INPUT
+--------------------------------
+- Configure the command so rawInput contains the target text expected by this action.
+
+PAT PHRASES
+--------------------------------
+- Rewrite the selfPhrases and otherPhrases arrays to fit the community.
+- Keep receivedCount interpolation in messages that display the updated total.
+
+TARGET RULES
+--------------------------------
+- The current script checks attendance only for other-user targets.
+- Add an invoker check when the channel also requires the sender to complete attendance.
+
+SHARED VARIABLES
+--------------------------------
+- Leave PatCounts, PatGiven, and SeenUsers unchanged for companion commands.
+
+PHRASES / RESPONSES
+--------------------------------
+- Edit these response collections to match the channel’s voice: otherPhrases, selfPhrases.
+- Preserve placeholders and interpolation values that insert usernames, totals, winners, or streaks.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+OTHER-USER PAT FAILS
+--------------------------------
+- Confirm the target exists in SeenUsers and use the target’s login name.
+
+SELF-PAT IS UNEXPECTED
+--------------------------------
+- An empty target intentionally becomes the invoker; require an argument if self-pats should be disabled.
+
+COUNTERS DO NOT MATCH
+--------------------------------
+- Check that both IncrementCount calls complete and no reset action clears only one dictionary.
+
+RESET PATS DOES NOT CLEAR THESE VALUES
+--------------------------------
+- This tracker uses PatCounts and PatGiven; ensure the reset action clears those same keys.
+
+==============================================================================
+*/
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string PatsKey = "PatCounts";
+    private const string PatsGivenKey = "PatGiven";
+    private const string SeenUsersKey = "SeenUsers";
+    public bool Execute()
+    {
+        var invokerRaw = (string)args["user"];
+        var rawInput = args.ContainsKey("rawInput") ? (string)args["rawInput"] : string.Empty;
+        // Determine target
+        var targetRaw = (rawInput ?? "").Trim();
+        if (targetRaw.StartsWith("@"))
+            targetRaw = targetRaw.Substring(1);
+        if (string.IsNullOrEmpty(targetRaw))
+            targetRaw = invokerRaw;
+        var invokerNorm = Normalize(invokerRaw);
+        var targetNorm = Normalize(targetRaw);
+        bool isSelfPat = invokerNorm == targetNorm;
+        var seen = GetDict(SeenUsersKey);
+        // Plushie rejection stays consistent
+        if (!isSelfPat && !seen.ContainsKey(targetNorm))
+        {
+            CPH.SendMessage($"🛑 @{invokerRaw} PAT FAILED! @{targetRaw} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        // ✅ Update counts first (only once)
+        var receivedCount = IncrementCount(PatsKey, targetNorm);
+        var givenCount = IncrementCount(PatsGivenKey, invokerNorm);
+        // 🎲 Randomized phrase pools
+        var rng = new Random();
+        string[] selfPhrases =
+        {
+            $"@{invokerRaw} patted themselves on the back. Good job, kiddo! ✨ (You have received {receivedCount} pats now!)",
+            $"@{invokerRaw} used their plushie to give themselves a pat! How cute! 🥺 (You have received {receivedCount} pats now!)",
+            $"@{invokerRaw} patted their padded bum like the cute baby they are 🤭 (You have received {receivedCount} pats now!)",
+            $"@{invokerRaw} touched their fluffy ears and made their tail wag! (You have received {receivedCount} pats now!)",
+            $"@{invokerRaw} curls up for naptime with a cozy pat. 🌙 (You have received {receivedCount} pats now!)",
+        };
+        string[] otherPhrases =
+        {
+            $"@{invokerRaw} patted @{targetRaw} on the back! Proud of them! 😊 (They have received {receivedCount} pats now!)",
+            $"@{invokerRaw} ruffled @{targetRaw}'s hair! How adorable! 🥺 (They have received {receivedCount} pats now!)",
+            $"@{invokerRaw} patted @{targetRaw}'s padded bum! How cute! 🤭 (They have received {receivedCount} pats now!)",
+            $"@{invokerRaw} played with @{targetRaw}'s fluffy ears and made their tail wag! (They have received {receivedCount} pats now!)",
+            $"@{invokerRaw} used their plushie to pat @{targetRaw} on the head! Someone seems shy! 🤭 (They have received {receivedCount} pats now!)",
+        };
+        // Pick one phrase depending on self vs other
+        string message = isSelfPat ? selfPhrases[rng.Next(selfPhrases.Length)] : otherPhrases[rng.Next(otherPhrases.Length)];
+        // ✅ Send exactly one message
+        CPH.SendMessage(message);
+        return true;
+    }
+
+    // Helpers
+    private int IncrementCount(string key, string name)
+    {
+        var dict = GetDict(key);
+        if (dict.ContainsKey(name))
+            dict[name]++;
+        else
+            dict[name] = 1;
+        SaveDict(key, dict);
+        return dict[name];
+    }
+
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        return JsonConvert.DeserializeObject<Dictionary<string, int>>(json) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private void SaveDict(string key, Dictionary<string, int> dict)
+    {
+        var json = JsonConvert.SerializeObject(dict);
+        CPH.SetGlobalVar(key, json, true);
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+}
