@@ -1,0 +1,155 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+HUG STATS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This lookup command reports how many hugs a selected viewer has given and received.
+
+With no supplied target it reports the invoker’s own record; with a username after
+the command it reports that attendee instead. The lookup is limited to accounts
+currently contained in SeenUsers.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: LOOKUP TARGET
+--------------------------------
+- Reads the invoking user and optional second command argument.
+- Defaults the target to the invoker when no username is supplied.
+
+STEP 2: ATTENDANCE VALIDATION
+--------------------------------
+- Normalizes the target and verifies it exists in SeenUsers.
+
+STEP 3: COUNTER READING
+--------------------------------
+- Loads HugStats and builds the target’s _given and _received keys.
+- Uses zero when either counter has not been created yet.
+
+STEP 4: STAT RESPONSE
+--------------------------------
+- Sends the selected viewer’s given and received totals to chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+HugStats
+--------------------------------
+Dictionary containing the persistent hug counters.
+
+SeenUsers
+--------------------------------
+Current attendance roster used to authorize the lookup target.
+
+<username>_given
+--------------------------------
+Number of hugs sent by the selected viewer.
+
+<username>_received
+--------------------------------
+Number of hugs received by the selected viewer.
+
+rawInput
+--------------------------------
+Command text used to identify an optional target.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND NAME
+--------------------------------
+- Bind this action to the desired hug-stat command, normally !hugstats.
+
+OUTPUT MESSAGE
+--------------------------------
+- Edit the final CPH.SendMessage line for wording and emojis.
+- Keep targetRaw, hugsGiven, and hugsReceived interpolation where values belong.
+
+TARGET RULE
+--------------------------------
+- The target must be in SeenUsers; remove that validation only for an all-time lookup.
+
+GLOBAL KEYS
+--------------------------------
+- Keep HugStats and SeenUsers aligned with the tracker and attendance modules.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+VIEWER HAS STATS BUT LOOKUP IS BLOCKED
+--------------------------------
+- Confirm the viewer is in SeenUsers for this stream.
+- Use the Twitch login name without extra punctuation.
+
+COUNTS ALWAYS SHOW ZERO
+--------------------------------
+- Inspect HugStats for the exact _given and _received key suffixes.
+
+NO RESPONSE
+--------------------------------
+- Verify the command supplies user and rawInput arguments.
+
+DIFFERENT CAPITALIZATION SPLITS DATA
+--------------------------------
+- Ensure all hug modules normalize usernames before constructing keys.
+
+==============================================================================
+*/
+// Trigger: Command (!hugstats)
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string HugStatsKey = "HugStats";
+    private const string SeenUsersKey = "SeenUsers";
+    public bool Execute()
+    {
+        var invokerRaw = (string)args["user"];
+        var invoker = Normalize(invokerRaw);
+        // ⭐ FIXED TARGET PARSING ⭐
+        var rawInput = args.ContainsKey("rawInput") ? args["rawInput"]?.ToString() ?? "" : "";
+        var parts = rawInput.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        // Default: self lookup
+        string targetRaw = invoker;
+        // If user typed a username, grab the next word
+        if (parts.Length > 1)
+            targetRaw = parts[1].Trim().TrimStart('@');
+        var target = Normalize(targetRaw);
+        var seen = GetDict(SeenUsersKey);
+        if (!seen.ContainsKey(target))
+        {
+            CPH.SendMessage($"@{invokerRaw}, @{targetRaw} hasn’t chatted yet, so they don’t have hug stats 🧸✨");
+            return true;
+        }
+
+        var stats = GetDict(HugStatsKey);
+        string givenKey = target + "_given";
+        string receivedKey = target + "_received";
+        int hugsGiven = stats.ContainsKey(givenKey) ? stats[givenKey] : 0;
+        int hugsReceived = stats.ContainsKey(receivedKey) ? stats[receivedKey] : 0;
+        CPH.SendMessage($"@{targetRaw} has given {hugsGiven} hugs 💖 and received {hugsReceived} hugs 🧸");
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        return JsonConvert.DeserializeObject<Dictionary<string, int>>(json) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    }
+}
