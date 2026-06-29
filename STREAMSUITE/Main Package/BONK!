@@ -1,0 +1,181 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+BONK COMMAND - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This interaction command produces a playful BONK response for another attendee
+and falls back to a dedicated self-bonk line when the command has no valid target.
+
+Both the invoker and any separate target are checked against SeenUsers before the
+message is allowed, keeping the command tied to current-stream participation.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: COMMAND PARSING
+--------------------------------
+- Reads user and rawInput from the Streamer.bot command event.
+- Removes !bonk, leading @, and surrounding spaces from the target text.
+
+STEP 2: INVOKER CHECK
+--------------------------------
+- Loads SeenUsers and blocks the command when the invoker has not completed attendance.
+
+STEP 3: TARGET CHECK
+--------------------------------
+- Allows an empty target for self-bonk mode.
+- Blocks a supplied target that is absent from SeenUsers.
+
+STEP 4: BONK DELIVERY
+--------------------------------
+- Chooses the fixed self-bonk response or a random entry from bonkPhrases.
+- Injects the usernames and posts the completed message to chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Attendance dictionary that controls who may invoke or receive a bonk.
+
+rawInput
+--------------------------------
+Command text used to locate the target after !bonk.
+
+bonkPhrases
+--------------------------------
+Randomized collection of other-user bonk messages.
+
+selfBonkPhrases
+--------------------------------
+Collection used when the viewer bonks themselves.
+
+rng
+--------------------------------
+Random number generator used to choose a target-bonk phrase.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND NAME
+--------------------------------
+- Keep !bonk in the target parsing line when using that command name.
+- Update the Replace value if the channel renames the command.
+
+BONK MESSAGES
+--------------------------------
+- Rewrite or expand bonkPhrases and selfBonkPhrases.
+- Retain @{invokerRaw} and @{targetRaw} wherever a username should appear.
+
+ATTENDANCE LINK
+--------------------------------
+- Leave SeenUsersKey as SeenUsers for compatibility with Attendance Check.
+
+BLOCKED RESPONSES
+--------------------------------
+- Adjust capitalization, emojis, and wording in the two failed-bonk messages.
+
+PHRASES / RESPONSES
+--------------------------------
+- Edit these response collections to match the channel’s voice: bonkPhrases, selfBonkPhrases.
+- Preserve placeholders and interpolation values that insert usernames, totals, winners, or streaks.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+VALID USERS ARE REJECTED
+--------------------------------
+- Confirm SeenUsers contains normalized lowercase names.
+- Make sure the Attendance Check data has not been reset early.
+
+COMMAND NAME APPEARS IN TARGET
+--------------------------------
+- Update rawInput.Replace("!bonk", "") to match the actual command text.
+
+TARGET WITH SPACES FAILS
+--------------------------------
+- Use the account login name because Twitch usernames do not contain spaces.
+
+JSON ERROR STOPS THE ACTION
+--------------------------------
+- Inspect SeenUsers for malformed JSON and reset only the current attendance dictionary if necessary.
+
+==============================================================================
+*/
+// Trigger: Command (!bonk)
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string SeenUsersKey = "SeenUsers";
+    private static readonly System.Random rng = new System.Random();
+    private static readonly string[] bonkPhrases = new[]
+    {
+        "@{invokerRaw} bonks @{targetRaw} on the head with a hammer!",
+        "@{invokerRaw} hits @{targetRaw} with a rolled up newspaper!",
+        "@{invokerRaw} cracks @{targetRaw} with a baseball bat!",
+        "@{invokerRaw} taps @{targetRaw} with a wooden stick!",
+    };
+    // ⭐ ONE self‑bonk phrase
+    private static readonly string[] selfBonkPhrases = new[]
+    {
+        "@{invokerRaw} bonked themselves...but why tho?"
+    };
+    public bool Execute()
+    {
+        var invokerRaw = (string)args["user"];
+        var invoker = Normalize(invokerRaw);
+        var rawInput = args.ContainsKey("rawInput") ? args["rawInput"].ToString() : "";
+        var targetRaw = rawInput.Replace("!bonk", "").Trim().TrimStart('@');
+        var target = Normalize(targetRaw);
+        // 🔒 SeenUsers validation
+        var seen = GetDict(SeenUsersKey);
+        if (!seen.ContainsKey(invoker))
+        {
+            CPH.SendMessage($"🛑 BONK FAILED! @{invokerRaw} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        if (!string.IsNullOrEmpty(target) && !seen.ContainsKey(target))
+        {
+            CPH.SendMessage($"🛑 @{invokerRaw} BONK FAILED! @{targetRaw} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        string phrase;
+        // Self-bonk
+        if (string.IsNullOrEmpty(target) || target == invoker)
+        {
+            phrase = selfBonkPhrases[0].Replace("@{invokerRaw}", invokerRaw);
+        }
+        else
+        {
+            phrase = bonkPhrases[rng.Next(bonkPhrases.Length)].Replace("@{invokerRaw}", invokerRaw).Replace("@{targetRaw}", targetRaw);
+        }
+
+        CPH.SendMessage(phrase);
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        return JsonConvert.DeserializeObject<Dictionary<string, int>>(json) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    }
+}
