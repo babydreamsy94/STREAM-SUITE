@@ -1,0 +1,258 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+SEND STREAMER A TEXT - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This private delivery action takes a channel-point redemption message, adds the
+redeemer’s username, and sends the result through an email-to-SMS gateway.
+
+After a successful SMTP send it waits briefly and optionally plays a local sound.
+Both delivery failures and successful sends remain silent in Twitch chat.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: MESSAGE INPUT
+--------------------------------
+- Reads rawInput from the redemption and exits when no message was supplied.
+
+STEP 2: SENDER SIGNATURE
+--------------------------------
+- Appends the redeeming viewer’s username to the outgoing message body.
+
+STEP 3: SMTP DELIVERY
+--------------------------------
+- Connects to Gmail SMTP on port 587 with SSL.
+- Sends the message to the configured carrier gateway address without a subject.
+
+STEP 4: LOCAL CONFIRMATION
+--------------------------------
+- Waits four seconds after a successful send and plays the configured sound file.
+
+STEP 5: SILENT FAILURE
+--------------------------------
+- Catches delivery errors without posting a public error message.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+rawInput
+--------------------------------
+Viewer-supplied message text from the redemption.
+
+user
+--------------------------------
+Redeemer username appended to the outgoing message.
+
+fiGatewayAddress
+--------------------------------
+Private email-to-SMS destination for the streamer’s phone.
+
+YOUR_EMAIL@example.com
+--------------------------------
+Placeholder for the SMTP sending account.
+
+YOUR_APP_PASSWORD
+--------------------------------
+Placeholder for an email-provider app password.
+
+C:\PATH\TO\YOUR\SOUND_FILE.mp3
+--------------------------------
+Placeholder local sound path used after successful delivery.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+SMS GATEWAY
+--------------------------------
+- Replace YOUR_PHONE_NUMBER@YOUR_CARRIER_GATEWAY with the private gateway address supplied by the mobile carrier.
+- Verify that the carrier still supports email-to-SMS delivery.
+
+EMAIL CREDENTIALS
+--------------------------------
+- Replace both YOUR_EMAIL@example.com values with the sending email account.
+- Replace YOUR_APP_PASSWORD with an app-specific password, never the account’s normal password.
+
+CONFIRMATION SOUND
+--------------------------------
+- Replace C:\PATH\TO\YOUR\SOUND_FILE.mp3 with an existing local audio file.
+- Adjust 0.5f to change playback volume or remove the PlaySound line.
+
+REDEMPTION ACCESS
+--------------------------------
+- Restrict the reward to trusted viewers or apply moderation limits appropriate for private text delivery.
+
+ERROR VISIBILITY
+--------------------------------
+- Add CPH.LogError inside catch when silent SMTP failures are too difficult to diagnose.
+
+==============================================================================
+📡 EMAIL-TO-SMS CARRIER REFERENCE
+==============================================================================
+CURRENT STATUS — VERIFY BEFORE ENTERING PRIVATE INFORMATION
+--------------------------------
+Carrier gateways are legacy services and can be changed, filtered, delayed, or
+retired without notice. Test delivery with a private account before relying on it.
+
+T-MOBILE
+--------------------------------
+- SMS format: 10digitnumber@tmomail.net
+- T-Mobile currently documents this gateway for SMS email delivery.
+- Use plain-text email; HTML content is not supported by the gateway.
+
+VERIZON
+--------------------------------
+- Legacy SMS format: 10digitnumber@vtext.com
+- Legacy MMS format: 10digitnumber@vzwpix.com
+- Verizon is shutting down Vtext/VZWPix, with completion expected by March 31, 2027.
+- Access may stop earlier for some senders, so do not treat it as a permanent option.
+
+AT&T
+--------------------------------
+- The former txt.att.net and mms.att.net gateways are no longer supported.
+- AT&T ended email-to-text and text-to-email service on June 17, 2025.
+- Do not configure this script with an AT&T gateway address.
+
+OTHER CARRIERS AND MVNOS
+--------------------------------
+- Ask the carrier whether it currently supports consumer email-to-SMS.
+- Do not assume a reseller or MVNO uses the gateway of its underlying network.
+- Confirm the exact address format, message limits, spam filtering, and opt-in rules.
+
+DELIVERY LIMITATIONS
+--------------------------------
+- Email-to-SMS is not guaranteed, encrypted, or suitable for emergencies.
+- Messages may be delayed, truncated, blocked as automated traffic, or silently dropped.
+- Some carriers may not support gateways. Check with your carrier for more info!
+
+==============================================================================
+🔐 DATA SAFETY
+==============================================================================
+WHY THIS SCRIPT IS HIGH RISK
+--------------------------------
+- The gateway address commonly contains the streamer’s real phone number. Publishing it can expose a direct contact destination and may enable harassment, spam, stalking, or unwanted account-recovery attempts.
+- The sender email identifies a real account that can be targeted with phishing, credential-stuffing, impersonation, or password-reset attacks.
+- An exposed app password can grant another person access to send mail through the account and may remain usable even when the normal account password is changed.
+- The local sound-file path can reveal the Windows username, folder structure, installed software, or other identifying details about the computer.
+- Viewer-supplied text may itself contain private or abusive content. Email-to-SMS delivery is not a secure channel and should never be treated as encrypted messaging.
+
+NEVER SHARE THESE ITEMS
+--------------------------------
+- Never upload a completed .cs file, Streamer.bot export, screenshot, screen recording, log, GitHub repository, Discord attachment, Pastebin entry, or support ticket that contains real contact or credential values.
+- Never show the real gateway address, sender email, app password, SMTP credential object, or identifying local file path—even briefly during a livestream or tutorial.
+- Never use the email account’s normal sign-in password in this script. Only use a revocable app-specific password when the provider supports one.
+- Do not copy SMTP errors into a public post until you have checked that the error text does not echo an email address, destination, message body, token, or server response containing private information.
+
+BEFORE SHARING OR SELLING THIS TEMPLATE
+--------------------------------
+- Replace the phone gateway with YOUR_PHONE_NUMBER@YOUR_CARRIER_GATEWAY.
+- Replace every sender address with YOUR_EMAIL@example.com and every app password with YOUR_APP_PASSWORD.
+- Replace the sound path with C:\PATH\TO\YOUR\SOUND_FILE.mp3 and remove any computer username from comments or screenshots.
+- Search the entire file and export for @, smtp, password, credential, phone-number patterns, Windows user-folder paths, drive-letter paths, and any real usernames before publishing.
+- Open the final ZIP or export itself and inspect the packaged copy. Sanitizing only the source file is not enough if an older unsanitized copy remains inside the archive.
+- Test the public template with placeholders or a separate test account rather than restoring real credentials before distribution.
+
+SAFER CONFIGURATION PRACTICES
+--------------------------------
+- Store credentials in protected Streamer.bot variables, environment variables, or a dedicated secret manager instead of hardcoding them when possible.
+- Use a separate sending account with the minimum access needed, enable multi-factor authentication, and create a unique app password only for this automation.
+- Restrict the redemption and action to trusted users, apply rate limits, and avoid allowing unmoderated text to be forwarded directly to a private phone.
+- Keep private diagnostic logs local, limit who can read the action, and do not sync credential-bearing files to public cloud folders or repositories.
+
+IF INFORMATION IS ACCIDENTALLY EXPOSED
+--------------------------------
+- Immediately revoke the exposed app password in the email provider’s security settings and create a new one only after the public copy has been removed.
+- If the normal email password was ever used, change it immediately, sign out other sessions, review recent account activity, and confirm multi-factor authentication is enabled.
+- Delete or replace the exposed file everywhere it was posted, including mirrors, message attachments, repository history, releases, and cached downloadable archives.
+- Treat an exposed phone gateway as an exposed phone number. Prepare for spam, block abusive senders, and contact the mobile carrier if harassment or account-security concerns begin.
+- Assume anything posted publicly may have been copied even after deletion; rotating credentials is required and removing the post alone is not sufficient.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+TEXT IS NOT RECEIVED
+--------------------------------
+- Verify the carrier gateway address and confirm email-to-SMS is supported.
+- Check the SMTP account, app password, port 587, and SSL access.
+
+NO ERROR APPEARS
+--------------------------------
+- The catch block is intentionally empty; add private logging during setup.
+
+SOUND DOES NOT PLAY
+--------------------------------
+- Confirm the local file exists and Streamer.bot can access it.
+
+MESSAGE IS EMPTY
+--------------------------------
+- The script exits when rawInput is missing or blank.
+
+REDEEMER NAME IS MISSING
+--------------------------------
+- Confirm the redemption trigger supplies the user argument.
+
+==============================================================================
+*/
+using System;
+using System.Net;
+using System.Net.Mail;
+using System.Threading;
+
+public class CPHInline
+{
+    public bool Execute()
+    {
+        // Grab the rawInput from the channel point redeem
+        // Grab and clean the rawInput
+        string smsBody = args.ContainsKey("rawInput") ? ((string)args["rawInput"]).Trim() : null;
+        if (string.IsNullOrEmpty(smsBody))
+        {
+            return true; // silently exit
+        }
+
+        // Add a signature stamp with redeemer's name
+        string signature = $"\n- Sent by {args["user"]}";
+        smsBody += signature;
+        // ========================================
+        //  🛑 DO NOT SHARE THIS INFO PUBLICLY! 🛑
+        // ========================================
+        // Your Fi SMS gateway address (replace with your own number)
+        string fiGatewayAddress = "YOUR_PHONE_NUMBER@YOUR_CARRIER_GATEWAY";
+        // Configure SMTP client (example uses Gmail SMTP)
+        SmtpClient client = new SmtpClient("smtp.gmail.com", 587)
+        {
+            Credentials = new NetworkCredential("YOUR_EMAIL@example.com", "YOUR_APP_PASSWORD"),
+            EnableSsl = true
+        };
+        // Build the email WITHOUT a subject
+        MailMessage mail = new MailMessage();
+        mail.From = new MailAddress("YOUR_EMAIL@example.com");
+        mail.To.Add(fiGatewayAddress);
+        mail.Body = smsBody;
+        // OPTIONAL: ADD SOUND EFFECT [REMOVE /* TO ACTIVATE IT!]
+        try
+        {
+            client.Send(mail);
+            int delayMs = 4000; // 4 seconds
+            Thread.Sleep(delayMs);
+            CPH.PlaySound(@"C:\PATH\TO\YOUR\SOUND_FILE.mp3", 0.5f);
+        // No chat message—silent success
+        }
+        catch
+        {
+        // Silent failure too—no chat output
+        }
+
+        return true;
+    }
+}
