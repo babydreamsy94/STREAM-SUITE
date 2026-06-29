@@ -1,0 +1,127 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+HUG RESET - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This broadcaster-restricted command removes every stored hug giver and receiver
+counter by replacing HugStats with an empty dictionary.
+
+It is designed for full hug-stat resets during testing, event restarts, or community
+leaderboard seasons.
+
+[OPTIONAL] - You can also optionally use a button on your Stream Deck for
+easy resets!
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: INVOKER VERIFICATION
+--------------------------------
+- Reads user and compares it against the hardcoded broadcaster login.
+- Rejects all other accounts with a chat warning.
+
+STEP 2: HUG DATA CLEAR
+--------------------------------
+- Creates an empty case-insensitive integer dictionary.
+- Serializes it and overwrites HugStats.
+
+STEP 3: RESET NOTICE
+--------------------------------
+- Posts a confirmation naming the broadcaster who performed the reset.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+HugStats
+--------------------------------
+Shared hug dictionary containing all _given and _received counters.
+
+user
+--------------------------------
+Invoker checked before the reset is allowed.
+
+empty
+--------------------------------
+Temporary empty dictionary written over the existing statistics.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+BROADCASTER LOGIN
+--------------------------------
+- Replace streamername with the channel owner’s Twitch username.
+
+COMMAND ACCESS
+--------------------------------
+- Bind the action to a broadcaster-only command or retain the built-in username check.
+
+RESET MESSAGES
+--------------------------------
+- Edit the unauthorized and successful-reset responses.
+
+VARIABLE NAME
+--------------------------------
+- Keep HugStats unchanged for Hugs Tracker, Hugs Stats, and Hugs Leaderboard.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BROADCASTER CANNOT RESET
+--------------------------------
+- Check the hardcoded username and the trigger’s user value.
+
+HUGS STILL APPEAR
+--------------------------------
+- Confirm all hug modules use HugStats in the same persistent scope.
+- A new hug after the reset will recreate counters.
+
+LEADERBOARD IS EMPTY AFTERWARD
+--------------------------------
+- That is expected because all hug counters were removed.
+
+ONLY ONE USER SHOULD BE CLEARED
+--------------------------------
+- This command is global; a separate per-user reset is required.
+
+==============================================================================
+*/
+// Trigger: Command (!resethugs)
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string HugStatsKey = "HugStats";
+
+    public bool Execute()
+    {
+        var invoker = (string)args["user"];
+
+        // ✅ Replace "streamername" with your broadcaster username
+        if (!string.Equals(invoker, "streamername", StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.SendMessage($"@{invoker}, only the broadcaster can use this command 🛑");
+            return true;
+        }
+
+        // Clear HugStats
+        var empty = new Dictionary<string,int>(StringComparer.OrdinalIgnoreCase);
+        var json = JsonConvert.SerializeObject(empty);
+        CPH.SetGlobalVar(HugStatsKey, json, true);
+
+        CPH.SendMessage($"@{invoker} cleared all hug stats!");
+        return true;
+    }
+}
