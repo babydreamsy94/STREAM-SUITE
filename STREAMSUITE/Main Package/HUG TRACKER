@@ -1,0 +1,204 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+HUG TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This interaction module lets one current attendee send a hug to another attendee
+and updates both the giver’s and receiver’s long-term counters.
+
+Self-hugs are intentionally rejected with a separate response. Successful hugs use
+a randomized message and include the receiver’s newly updated total.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: COMMAND TARGETING
+--------------------------------
+- Reads user and removes !hug from rawInput to identify the target.
+- Normalizes both usernames for validation and storage.
+
+STEP 2: ATTENDANCE CHECK
+--------------------------------
+- Requires the invoker to exist in SeenUsers.
+- Requires a separate target to exist in SeenUsers as well.
+
+STEP 3: SELF-HUG HANDLING
+--------------------------------
+- Uses selfHugError when the target is blank or matches the invoker.
+- Does not change counters for a rejected self-hug.
+
+STEP 4: COUNTER UPDATE
+--------------------------------
+- Increments <invoker>_given and <target>_received inside HugStats.
+- Saves the updated dictionary.
+
+STEP 5: RANDOM CHAT MESSAGE
+--------------------------------
+- Selects a hug phrase, inserts both names and the receiver total, then posts it.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+HugStats
+--------------------------------
+Dictionary storing every giver and receiver counter.
+
+SeenUsers
+--------------------------------
+Current attendance dictionary required for command eligibility.
+
+hugPhrases
+--------------------------------
+Randomized messages used for successful hugs.
+
+selfHugError
+--------------------------------
+Fixed response used when a viewer targets themselves or supplies no target.
+
+<username>_given / <username>_received
+--------------------------------
+Persistent keys updated after each successful hug.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND PARSING
+--------------------------------
+- Keep !hug in rawInput.Replace when the command uses that name.
+- Update the literal when renaming the command.
+
+HUG PHRASES
+--------------------------------
+- Add or rewrite hugPhrases while preserving @{invokerRaw}, @{targetRaw}, and {count}.
+
+SELF-HUG RESPONSE
+--------------------------------
+- Change selfHugError to match the channel’s preferred behavior or tone.
+
+ATTENDANCE REQUIREMENT
+--------------------------------
+- Keep SeenUsers validation for attendee-only interactions.
+- Remove or revise it only when off-roster targets should be allowed.
+
+VARIABLE NAME
+--------------------------------
+- Leave HugStats unchanged for the stats, leaderboard, and reset actions.
+
+PHRASES / RESPONSES
+--------------------------------
+- Edit these response collections to match the channel’s voice: hugPhrases.
+- Preserve placeholders and interpolation values that insert usernames, totals, winners, or streaks.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+HUG IS REJECTED
+--------------------------------
+- Confirm both invoker and target have been added to SeenUsers.
+- Check that target parsing removed the actual command name.
+
+COUNTER DOES NOT INCREASE
+--------------------------------
+- Inspect HugStats for valid JSON and confirm SaveDict runs on a non-self hug.
+
+MESSAGE SHOWS {count}
+--------------------------------
+- Keep the placeholder exactly as {count} inside custom phrases.
+
+TARGET NAME IS WRONG
+--------------------------------
+- Use a single Twitch login after the command and avoid display-name spacing.
+
+==============================================================================
+*/
+// Trigger: Command (!hug)
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string HugStatsKey = "HugStats";
+    private const string SeenUsersKey = "SeenUsers";
+    private static readonly System.Random rng = new System.Random();
+    private static readonly string[] hugPhrases = new[]
+    {
+        "@{invokerRaw} gives @{targetRaw} a big hug like a teddy bear! 🧸 (They have now received {count} hugs!)",
+        "@{invokerRaw} wraps @{targetRaw} in their soft arms! 🤗 (They have now received {count} hugs!)",
+        "@{invokerRaw} squeezes @{targetRaw} with all their love! 💖 (They have now received {count} hugs!)",
+        "@{invokerRaw} cuddles @{targetRaw} like a soft pillow ☁️ (They have now received {count} hugs!)",
+        "@{invokerRaw} nuzzles @{targetRaw} while wagging their tail! 🐶 (They have now received {count} hugs!)"
+    };
+    private const string selfHugError = "@{invokerRaw} tried to hug themselves but failed horribly. Awkward! 😳";
+    public bool Execute()
+    {
+        var invokerRaw = (string)args["user"];
+        var invoker = Normalize(invokerRaw);
+        var rawInput = args.ContainsKey("rawInput") ? args["rawInput"].ToString() : "";
+        var targetRaw = rawInput.Replace("!hug", "").Trim().TrimStart('@');
+        var target = Normalize(targetRaw);
+        // 🔒 SeenUsers validation
+        var seen = GetDict(SeenUsersKey);
+        if (!seen.ContainsKey(invoker))
+        {
+            CPH.SendMessage($"🛑 HUG FAILED! @{invokerRaw} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        if (!string.IsNullOrEmpty(target) && !seen.ContainsKey(target))
+        {
+            CPH.SendMessage($"🛑 @{invokerRaw} HUG FAILED! @{targetRaw} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        var stats = GetDict(HugStatsKey);
+        string phrase;
+        if (string.IsNullOrEmpty(target) || target == invoker)
+        {
+            phrase = selfHugError.Replace("@{invokerRaw}", invokerRaw);
+        }
+        else
+        {
+            // ✅ Separate tracking for given and received
+            string invokerGivenKey = invoker + "_given";
+            string targetReceivedKey = target + "_received";
+            if (!stats.ContainsKey(invokerGivenKey))
+                stats[invokerGivenKey] = 0;
+            if (!stats.ContainsKey(targetReceivedKey))
+                stats[targetReceivedKey] = 0;
+            stats[invokerGivenKey]++; // hugs given
+            stats[targetReceivedKey]++; // hugs received
+            SaveDict(HugStatsKey, stats);
+            phrase = hugPhrases[rng.Next(hugPhrases.Length)].Replace("{count}", stats[targetReceivedKey].ToString()).Replace("@{invokerRaw}", invokerRaw).Replace("@{targetRaw}", targetRaw);
+        }
+
+        CPH.SendMessage(phrase);
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        return JsonConvert.DeserializeObject<Dictionary<string, int>>(json) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private void SaveDict(string key, Dictionary<string, int> dict)
+    {
+        var json = JsonConvert.SerializeObject(dict);
+        CPH.SetGlobalVar(key, json, true);
+    }
+}
