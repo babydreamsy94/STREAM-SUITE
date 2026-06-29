@@ -345,20 +345,6 @@ Channel Point reward IDs and Stream Deck button IDs are unique to each user and 
 It is an ABDL-themed community command designed for playful teasing between consenting adult community members.
 
 It is not required for Stream Suite's analytics, attendance, reporting, or other community features. Users who do not want it can simply avoid importing it or delete it from Streamer.bot.
-
-### Reset Tools
-
-Reset Tools is a separate optional utility package containing:
-
-- Reset Attendance
-- Reset Variables
-- `!resetattendance`
-- `!resetvar`
-- Stream Deck support
-- Configurable Stream Deck button IDs
-
-It is useful for maintenance and testing but is not required for normal operation.
-
 ---
 
 ## Installation
@@ -394,7 +380,7 @@ Complete the free checkout process and download the package.
 5. Confirm that the import will not overwrite anything important.
 6. Complete the import.
 
-Import Diaper Check or Reset Tools separately only when wanted.
+Import Diaper Check separately only when wanted.
 
 ### 5. Review Commands and Triggers
 
