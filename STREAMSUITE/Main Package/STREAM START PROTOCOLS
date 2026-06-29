@@ -1,0 +1,315 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+STREAM START PROTOCOLS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This opening workflow prepares every Stream Suite module for a new live session.
+It registers the broadcaster in attendance, preserves long-term history, resets all
+per-stream analytics, records the local start time, restores chat, and pins a welcome.
+
+The resulting state is the baseline expected by the trackers and Stream End report.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: BROADCASTER REGISTRATION
+--------------------------------
+- Normalizes StreamerUser and adds it to SeenUsers when absent.
+
+STEP 2: HISTORY UPDATE
+--------------------------------
+- Ensures the broadcaster has an AttendanceHistory list.
+- Adds today’s date after comparing parsed dates rather than raw date strings.
+
+STEP 3: ANALYTICS RESET
+--------------------------------
+- Clears chat, subscription totals and details, follows, raids, bits, and the previous attendance summary.
+
+STEP 4: SESSION START
+--------------------------------
+- Stores DateTime.Now as an ISO-8601 local timestamp in analytics.sessionStartLocal.
+
+STEP 5: CHAT RESTORATION
+--------------------------------
+- Posts an opening greeting, waits three seconds, and disables emote-only, subscriber-only, and slow mode.
+
+STEP 6: PINNED WELCOME
+--------------------------------
+- Sends and pins the channel’s attendance explanation.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+StreamerUser
+--------------------------------
+Template broadcaster login used in attendance and welcome messages.
+
+SeenUsers
+--------------------------------
+Current-stream attendance dictionary initialized with the broadcaster.
+
+AttendanceHistory
+--------------------------------
+Long-term attendance dictionary preserved across streams.
+
+analytics.sessionStartLocal
+--------------------------------
+Local ISO timestamp used to calculate stream duration.
+
+analytics.chatMessagesByUser / analytics.chatTotalMessages
+--------------------------------
+Chat analytics reset for the new session.
+
+analytics.subs / analytics.subsDetailed / analytics.totalSubs
+--------------------------------
+Subscription counts, labels, and true stream total reset together.
+
+analytics.follows / analytics.totalFollows
+--------------------------------
+Follow analytics reset for the new session.
+
+analytics.raids
+--------------------------------
+Raid list reset to an empty JSON array.
+
+analytics.bits / analytics.totalBits
+--------------------------------
+Bits analytics reset for the new session.
+
+analytics.attendanceSummaryJson
+--------------------------------
+Previous attendance summary cleared at startup.
+
+ExcludedUsers
+--------------------------------
+Template list of accounts omitted by companion analytics modules.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster’s Twitch login.
+- Replace "botname" with the channel’s custom bot login.
+- Keep, remove, or replace "nightbot", "streamelements", "streamlabs", and "sery_bot" to match the services used by the channel.
+- Leave the ExcludedUsers variable name unchanged unless every reference is updated.
+
+STREAMER USERNAME
+--------------------------------
+- Replace StreamerUser = "streamername" with the broadcaster’s Twitch login.
+
+OPENING MESSAGES
+--------------------------------
+- Customize the greeting and pinned attendance explanation.
+- Keep userNorm interpolation where the broadcaster name should appear.
+
+CHAT SETTINGS
+--------------------------------
+- Remove or change the unlock calls when the channel uses different moderation modes.
+
+START DELAY
+--------------------------------
+- Adjust CPH.Wait(3000) when chat should unlock sooner or later.
+
+ANALYTICS KEYS
+--------------------------------
+- Keep the reset keys synchronized with every tracker and Stream End Protocols.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+STREAMER IS SAVED AS STREAMERNAME
+--------------------------------
+- Replace the StreamerUser placeholder before enabling the action.
+
+OLD SUB LABELS APPEAR
+--------------------------------
+- Confirm analytics.subsDetailed reaches its reset line.
+
+OLD ANALYTICS APPEAR
+--------------------------------
+- Verify the action runs once on stream start and no later action restores stale values.
+
+CHAT STAYS RESTRICTED
+--------------------------------
+- Confirm the connected Twitch account has moderation permissions and the action reaches the unlock calls.
+
+PINNED MESSAGE FAILS
+--------------------------------
+- Verify the account can send and pin messages in the channel.
+
+==============================================================================
+*/
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string SeenUsersKey = "SeenUsers";
+    private const string AttendanceHistoryKey = "AttendanceHistory";
+    private const string SessionStartKey = "analytics.sessionStartLocal";
+    private const string StreamerUser = "streamername";
+
+    private static readonly string[] ExcludedUsers =
+    {
+        "streamername",
+        "botname",
+        "nightbot",
+        "streamelements",
+        "streamlabs",
+        "sery_bot"
+    };
+
+    private bool IsExcluded(string user)
+    {
+        if (string.IsNullOrWhiteSpace(user))
+            return false;
+        var n = Normalize(user);
+        foreach (var u in ExcludedUsers)
+            if (u.Equals(n, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
+    public bool Execute()
+    {
+        var userNorm = Normalize(StreamerUser);
+
+        // --- Ensure SeenUsers exists and is case-insensitive ---
+        var seen = GetDict(SeenUsersKey);
+        if (!seen.ContainsKey(userNorm))
+        {
+            seen[userNorm] = 1;
+            SaveDict(SeenUsersKey, seen);
+            CPH.LogInfo($"Stream Online: added streamer '{userNorm}' to SeenUsers.");
+        }
+        else
+        {
+            CPH.LogInfo($"Stream Online: streamer '{userNorm}' already present in SeenUsers.");
+        }
+
+        // --- Ensure AttendanceHistory exists and is updated consistently ---
+        var history = GetHistory();
+        string today = DateTime.Now.ToString("yyyy-MM-dd");
+        DateTime todayDate = DateTime.Now.Date;
+
+        if (!history.ContainsKey(userNorm))
+            history[userNorm] = new List<string>();
+
+        // FIX 4: Use parsed date comparison instead of raw string to avoid format variation
+        var parsedDates = history[userNorm]
+            .Select(d => DateTime.TryParse(d, out var dt) ? dt.Date : (DateTime?)null)
+            .Where(d => d.HasValue)
+            .Select(d => d.Value)
+            .ToList();
+
+        if (!parsedDates.Any(d => d == todayDate))
+        {
+            history[userNorm].Add(today);
+            SaveHistory(history);
+            CPH.LogInfo($"Stream Online: added today's date ({today}) to AttendanceHistory for '{userNorm}'.");
+        }
+        else
+        {
+            CPH.LogInfo($"Stream Online: AttendanceHistory already contains today's date for '{userNorm}'.");
+        }
+
+        // --- Reset per-stream analytics ---
+        // FIX 1: Added analytics.subsDetailed to reset list so previous stream's
+        //         sub type details don't bleed into the new stream's summary
+        CPH.SetGlobalVar("analytics.chatMessagesByUser", "{}", true);
+        CPH.SetGlobalVar("analytics.chatTotalMessages", 0, true);
+        CPH.SetGlobalVar("analytics.subs", "{}", true);
+        CPH.SetGlobalVar("analytics.subsDetailed", "{}", true);
+        CPH.SetGlobalVar("analytics.totalSubs", 0, true);
+        CPH.SetGlobalVar("analytics.follows", "{}", true);
+        CPH.SetGlobalVar("analytics.totalFollows", 0, true);
+        CPH.SetGlobalVar("analytics.raids", "[]", true);
+        CPH.SetGlobalVar("analytics.bits", "{}", true);
+        CPH.SetGlobalVar("analytics.totalBits", 0, true);
+        CPH.SetGlobalVar("analytics.attendanceSummaryJson", "{}", true);
+
+        // Mark session start (LOCAL TIME, ISO 8601)
+        CPH.SetGlobalVar(SessionStartKey, DateTime.Now.ToString("o"), true);
+
+        // Unlock chat + welcome
+        CPH.SendMessage($"/me Hello @{userNorm}! Glad to see you here again! Unlocking chat now....");
+        CPH.Wait(3000);
+        CPH.TwitchEmoteOnly(false);
+        CPH.TwitchSubscriberOnly(false);
+        CPH.TwitchSlowMode(false);
+        // FIX 5: Removed TwitchUpdatePinnedMessageDuration(null) — passing null is a
+        //         no-op or error; omit it entirely to just let the pin persist
+        CPH.TwitchSendAndPinMessage($"👋 Hello, and welcome to @{userNorm}'s stream! This channel doesn't use Twitch's viewership metrics, so if you'd like to be counted for attending, just send a message in chat or use the Attendance Check redeem. Thank you for stopping by, & hope you have a wonderful time here! 💖");
+        return true;
+    }
+
+    // --- Helpers ---
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+
+    // FIX 2: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var raw = JsonConvert.DeserializeObject<Dictionary<string, int>>(json)
+                      ?? new Dictionary<string, int>();
+            var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in raw)
+                dict[kv.Key] = kv.Value;
+            return dict;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogInfo($"GetDict: failed to deserialize key '{key}', resetting. Error: {ex.Message}");
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private void SaveDict(string key, Dictionary<string, int> dict)
+    {
+        CPH.SetGlobalVar(key, JsonConvert.SerializeObject(dict), true);
+    }
+
+    // FIX 3: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+    private Dictionary<string, List<string>> GetHistory()
+    {
+        var json = CPH.GetGlobalVar<string>(AttendanceHistoryKey, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var raw = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(json)
+                      ?? new Dictionary<string, List<string>>();
+            var dict = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in raw)
+                dict[kv.Key] = kv.Value ?? new List<string>();
+            return dict;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogInfo($"GetHistory: failed to deserialize AttendanceHistory. NOT resetting. Error: {ex.Message}");
+            return new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private void SaveHistory(Dictionary<string, List<string>> dict)
+    {
+        CPH.SetGlobalVar(AttendanceHistoryKey, JsonConvert.SerializeObject(dict, Formatting.Indented), true);
+    }
+}
