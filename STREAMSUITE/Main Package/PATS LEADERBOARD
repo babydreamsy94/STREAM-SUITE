@@ -1,0 +1,188 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+PAT LEADERBOARD - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This command creates a top-three ranking for pat givers or pat receivers who are
+currently represented in the stream attendance list.
+
+It combines PatGiven, PatCounts, and SeenUsers, sorts the requested category, and
+delivers a short leaderboard that fits comfortably in Twitch chat.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: CATEGORY SELECTION
+--------------------------------
+- Parses the second command word and accepts only givers or receivers.
+- Returns a usage prompt for any other input.
+
+STEP 2: COUNTER LOADING
+--------------------------------
+- Reads PatGiven for sent pats and PatCounts for received pats.
+- Loads SeenUsers for current-session filtering.
+
+STEP 3: ATTENDEE FILTERING
+--------------------------------
+- Builds giver and receiver lists only from users present in SeenUsers.
+
+STEP 4: SORT AND TRIM
+--------------------------------
+- Sorts each category descending by count.
+- BuildTop3 formats no more than three ranked entries.
+
+STEP 5: LEADERBOARD MESSAGE
+--------------------------------
+- Posts the selected category or a no-data response.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+PatCounts
+--------------------------------
+Dictionary containing pats received per username.
+
+PatGiven
+--------------------------------
+Dictionary containing pats given per username.
+
+SeenUsers
+--------------------------------
+Current attendance dictionary used to limit leaderboard membership.
+
+mode
+--------------------------------
+Requested board type: givers or receivers.
+
+BuildTop3
+--------------------------------
+Formatter that produces ranked chat-ready entries.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND SYNTAX
+--------------------------------
+- Bind the action to a pat leaderboard command such as !pboard.
+- Update the example text if the command name differs.
+
+NUMBER OF RESULTS
+--------------------------------
+- Change i < 3 in BuildTop3 to adjust the leaderboard size.
+
+CHAT PRESENTATION
+--------------------------------
+- Customize headings, empty-board text, separators, and emojis.
+
+ROSTER SCOPE
+--------------------------------
+- Keep SeenUsers filtering for active attendees only, or remove it for all-time rankings.
+
+SHARED KEYS
+--------------------------------
+- Keep PatCounts and PatGiven consistent with Pats Tracker and Pats Stats.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+COMMAND ONLY SHOWS USAGE
+--------------------------------
+- Include givers or receivers after the command.
+
+PAST LEADERS ARE MISSING
+--------------------------------
+- This board filters by SeenUsers, so only current attendees are shown.
+
+BOARD IS EMPTY
+--------------------------------
+- Confirm Pats Tracker has written data to PatCounts and PatGiven.
+
+RANKING HAS DUPLICATE NAMES
+--------------------------------
+- Check the stored dictionaries for inconsistent username casing.
+
+==============================================================================
+*/
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string PatsKey = "PatCounts";
+    private const string PatsGivenKey = "PatGiven";
+    private const string SeenUsersKey = "SeenUsers";
+    public bool Execute()
+    {
+        var invoker = (string)args["user"];
+        var rawInput = args.ContainsKey("rawInput") ? args["rawInput"]?.ToString() ?? "" : "";
+        var parts = rawInput.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        // Default: no mode
+        string mode = "";
+        // If user typed a mode, grab the next word
+        if (parts.Length > 1)
+            mode = parts[1].ToLowerInvariant();
+        // ❗ NEW: Reject if missing or invalid
+        if (mode != "givers" && mode != "receivers")
+        {
+            CPH.SendMessage($"Please specify either 'givers' or 'receivers'. Example: !pboard givers");
+            return true;
+        }
+
+        var patsReceived = GetDict(PatsKey);
+        var patsGiven = GetDict(PatsGivenKey);
+        var seen = GetDict(SeenUsersKey);
+        var giverList = new List<KeyValuePair<string, int>>();
+        foreach (var kv in patsGiven)
+            if (seen.ContainsKey(kv.Key))
+                giverList.Add(kv);
+        giverList.Sort((a, b) => b.Value.CompareTo(a.Value));
+        var receiverList = new List<KeyValuePair<string, int>>();
+        foreach (var kv in patsReceived)
+            if (seen.ContainsKey(kv.Key))
+                receiverList.Add(kv);
+        receiverList.Sort((a, b) => b.Value.CompareTo(a.Value));
+        if (giverList.Count == 0 && receiverList.Count == 0)
+        {
+            CPH.SendMessage($"@{invoker}, I tried to show the board but everyone’s hiding under a mountain of plushies! 🧸");
+            return true;
+        }
+
+        var giverParts = BuildTop3(giverList);
+        var receiverParts = BuildTop3(receiverList);
+        string giverBoard = giverParts.Count > 0 ? string.Join(" | ", giverParts) : "No pats given yet";
+        string receiverBoard = receiverParts.Count > 0 ? string.Join(" | ", receiverParts) : "No pats received yet";
+        if (mode == "givers")
+            CPH.SendMessage($"Pat Giver Leaderboard (Top 3): {giverBoard}");
+        else if (mode == "receivers")
+            CPH.SendMessage($"Pat Receiver Leaderboard (Top 3): {receiverBoard}");
+        return true;
+    }
+
+    private List<string> BuildTop3(List<KeyValuePair<string, int>> list)
+    {
+        var parts = new List<string>();
+        for (int i = 0; i < list.Count && i < 3; i++)
+            parts.Add($"{i + 1}) @{list[i].Key} — {list[i].Value}");
+        return parts;
+    }
+
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        return JsonConvert.DeserializeObject<Dictionary<string, int>>(json) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    }
+}
