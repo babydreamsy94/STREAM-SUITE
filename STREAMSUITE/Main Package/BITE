@@ -1,0 +1,237 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+BITE COMMAND - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This chat command lets an attendance-verified viewer bite another eligible viewer
+or trigger a self-bite response when no separate target is supplied.
+
+The module uses randomized phrase pools, validates both participants against the
+current SeenUsers roster, and keeps the interaction limited to viewers who have
+participated in the active stream.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: COMMAND INPUT
+--------------------------------
+- Reads the invoking user and the full rawInput text from the command event.
+- Parses everything after the command as the optional target username.
+
+STEP 2: ATTENDANCE GATE
+--------------------------------
+- Loads SeenUsers and rejects an invoker who has not been counted this stream.
+- Rejects a different target who is not present in the same attendance roster.
+
+STEP 3: MODE SELECTION
+--------------------------------
+- Uses self-bite mode when no target is supplied or the target matches the invoker.
+- Uses target-bite mode for a valid second viewer.
+
+STEP 4: RANDOM RESPONSE
+--------------------------------
+- Selects a phrase from selfBitePhrases or bitePhrases through a locked random generator.
+- Replaces the username placeholders and sends the finished message to chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Current-stream attendance dictionary used to authorize the invoker and target.
+
+rawInput
+--------------------------------
+Full command text used to extract the optional target.
+
+bitePhrases
+--------------------------------
+Random response pool used when biting another viewer.
+
+selfBitePhrases
+--------------------------------
+Separate response pool used for no-target and self-target commands.
+
+rng / rngLock
+--------------------------------
+Shared random generator and lock used to select phrases safely.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND TRIGGER
+--------------------------------
+- Bind the action to the channel’s bite command, normally !bite.
+- Keep rawInput and user available in the command arguments.
+
+PHRASE POOLS
+--------------------------------
+- Add, remove, or rewrite entries in bitePhrases and selfBitePhrases.
+- Preserve @{invokerRaw} and @{targetRaw} placeholders in phrases that need names.
+
+ATTENDANCE REQUIREMENT
+--------------------------------
+- Keep SeenUsersKey unchanged to share eligibility with Attendance Check.
+- Remove or revise the validation blocks only when the channel does not want attendance gating.
+
+FAILURE MESSAGES
+--------------------------------
+- Customize the two blocked-command responses for the channel’s style.
+
+PHRASES / RESPONSES
+--------------------------------
+- Edit these response collections to match the channel’s voice: bitePhrases, selfBitePhrases.
+- Preserve placeholders and interpolation values that insert usernames, totals, winners, or streaks.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+COMMAND ALWAYS SAYS ATTENDANCE REQUIRED
+--------------------------------
+- Verify Attendance Check has populated SeenUsers.
+- Check username normalization and confirm the command runs during the same stream session.
+
+TARGET IS NOT FOUND
+--------------------------------
+- Use a Twitch login name rather than a display name containing spaces.
+- Confirm the target has already been added to SeenUsers.
+
+PHRASES SHOW PLACEHOLDERS
+--------------------------------
+- Keep the exact placeholder spelling used by the Replace calls.
+
+NO COMMAND OUTPUT
+--------------------------------
+- Confirm the trigger provides user and rawInput, then review Streamer.bot logs for warnings.
+
+==============================================================================
+*/
+// Trigger: Command (!bite)
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string SeenUsersKey = "SeenUsers";
+
+    // Thread-safe Random via lock
+    private static readonly Random rng = new Random();
+    private static readonly object rngLock = new object();
+
+    private static readonly string[] bitePhrases = new[]
+    {
+        "@{invokerRaw} sinks their teeth into @{targetRaw}!",
+        "@{invokerRaw} playfully bites @{targetRaw}!",
+        "@{invokerRaw} chomps down on @{targetRaw} like a snack!",
+        "@{invokerRaw} gives @{targetRaw} a surprise nibble!",
+        "@{invokerRaw} noms on @{targetRaw}'s finger!"
+    };
+
+    private static readonly string[] selfBitePhrases = new[]
+    {
+        "@{invokerRaw} nibbles on their flesh a bit....that's weird",
+        "@{invokerRaw} nom nom nom... tasty fingers!",
+        "@{invokerRaw} bites themselves and instantly regrets it!",
+        "@{invokerRaw} chomps on their own arm like a snack!"
+    };
+
+    private int NextRandom(int maxValue)
+    {
+        lock (rngLock) { return rng.Next(maxValue); }
+    }
+
+    public bool Execute()
+    {
+        // Guard against null args
+        if (args == null)
+        {
+            CPH.LogWarn("!bite: args is null, skipping.");
+            return true;
+        }
+
+        // Safe username extraction with ContainsKey guard
+        if (!args.ContainsKey("user") || args["user"] == null)
+        {
+            CPH.LogWarn("!bite: no invoker username found, skipping.");
+            return true;
+        }
+
+        string invokerRaw = args["user"].ToString();
+        string invoker = Normalize(invokerRaw);
+
+        // Strip the first word (the command) rather than search-replacing "!bite"
+        // to avoid mangling usernames that contain the word "bite"
+        string rawInput = args.ContainsKey("rawInput") ? args["rawInput"].ToString() : "";
+        string[] parts = rawInput.Trim().Split(' ');
+        string targetRaw = parts.Length > 1
+            ? string.Join(" ", parts, 1, parts.Length - 1).TrimStart('@')
+            : "";
+        string target = Normalize(targetRaw);
+
+        // SeenUsers validation
+        var seen = GetDict(SeenUsersKey);
+
+        if (!seen.ContainsKey(invoker))
+        {
+            CPH.SendMessage($"🛑 BITE FAILED! @{invokerRaw} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        if (!string.IsNullOrEmpty(target) && target != invoker && !seen.ContainsKey(target))
+        {
+            CPH.SendMessage($"🛑 @{invokerRaw} BITE FAILED! @{targetRaw} HAS NOT DONE ATTENDANCE CHECK REDEEM! 🛑");
+            return true;
+        }
+
+        string phrase;
+        if (string.IsNullOrEmpty(target) || target == invoker)
+        {
+            phrase = selfBitePhrases[NextRandom(selfBitePhrases.Length)]
+                .Replace("@{invokerRaw}", invokerRaw);
+        }
+        else
+        {
+            phrase = bitePhrases[NextRandom(bitePhrases.Length)]
+                .Replace("@{invokerRaw}", invokerRaw)
+                .Replace("@{targetRaw}", targetRaw);
+        }
+
+        CPH.SendMessage(phrase);
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var raw = JsonConvert.DeserializeObject<Dictionary<string, int>>(json)
+                      ?? new Dictionary<string, int>();
+            var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in raw)
+                dict[kv.Key] = kv.Value;
+            return dict;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn($"!bite: Failed to deserialize '{key}'. Error: {ex.Message}");
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+}
