@@ -1,0 +1,227 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+CHAT MESSAGE TRACKING - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This lightweight analytics action counts every eligible chat message by author
+while also increasing a stream-wide message counter.
+
+It is intended to run on each Twitch chat message so Stream End Protocols can
+calculate total messages, unique chatters, top chatter, and message rate.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: MESSAGE AUTHOR LOOKUP
+--------------------------------
+- Checks userLogin, userName, and user until a usable account name is found.
+- Normalizes the account for consistent dictionary keys.
+
+STEP 2: BOT EXCLUSION
+--------------------------------
+- Ignores blank names and any account listed in ExcludedUsers.
+
+STEP 3: AUTHOR COUNTER
+--------------------------------
+- Loads analytics.chatMessagesByUser and increments the sender’s message count by one.
+
+STEP 4: OVERALL COUNTER
+--------------------------------
+- Reads analytics.chatTotalMessages, repairs invalid values by starting at zero, and increments it.
+- Stores both counters for later reporting.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.chatMessagesByUser
+--------------------------------
+JSON dictionary of current-stream message counts keyed by username.
+
+analytics.chatTotalMessages
+--------------------------------
+Integer total of all eligible messages seen during the stream.
+
+ExcludedUsers
+--------------------------------
+Channel and bot accounts omitted from engagement analytics.
+
+userLogin / userName / user
+--------------------------------
+Possible event arguments used to locate the message author.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster’s Twitch login.
+- Replace "botname" with the channel’s custom bot login.
+- Keep, remove, or replace "nightbot", "streamelements", "streamlabs", and "sery_bot" to match the services used by the channel.
+- Leave the ExcludedUsers variable name unchanged unless every reference is updated.
+
+MESSAGE TRIGGER
+--------------------------------
+- Connect this action to the general Twitch chat message event.
+- Avoid attaching it to command-only events unless command messages are the only messages you want counted.
+
+ANALYTICS KEYS
+--------------------------------
+- Do not rename the two analytics variables unless Stream Start and Stream End are updated too.
+
+COUNTING RULES
+--------------------------------
+- Add additional filters before the increment block when certain messages should not count.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+COUNTS REMAIN ZERO
+--------------------------------
+- Verify the action is enabled on the chat message trigger.
+- Check that the trigger supplies one of the supported username fields.
+
+BOT MESSAGES ARE INCLUDED
+--------------------------------
+- Add the bot’s normalized login to ExcludedUsers.
+
+TOTAL AND PER-USER VALUES DISAGREE
+--------------------------------
+- Check for another action writing only one of the two variables.
+- Confirm Stream Start resets both values at the same time.
+
+DICTIONARY RESTARTS
+--------------------------------
+- Review logs for a deserialization warning and inspect analytics.chatMessagesByUser JSON.
+
+==============================================================================
+*/
+// Trigger: Twitch Chat Message
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string ChatByUserKey = "analytics.chatMessagesByUser";
+    private const string ChatTotalKey = "analytics.chatTotalMessages";
+
+    private static readonly string[] ExcludedUsers =
+    {
+        "streamername",
+        "botname",
+        "nightbot",
+        "streamelements",
+        "streamlabs",
+        "sery_bot"
+    };
+
+    private bool IsExcluded(string user) =>
+        ExcludedUsers.Contains(user, StringComparer.OrdinalIgnoreCase);
+
+    public bool Execute()
+    {
+        // FIX 4: Guard against null args
+        if (args == null)
+        {
+            CPH.LogWarn("Chat Tracking: args is null, skipping.");
+            return true;
+        }
+
+        // FIX 2: Reordered priority — userLogin first as most reliable on chat events,
+        //         using a loop that stops at the first valid value
+        string userRaw = null;
+        string[] userKeys = { "userLogin", "userName", "user" };
+        foreach (var key in userKeys)
+        {
+            if (args.ContainsKey(key))
+            {
+                var val = args[key]?.ToString();
+                if (!string.IsNullOrWhiteSpace(val)) { userRaw = val; break; }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(userRaw))
+            return true;
+
+        string user = Normalize(userRaw);
+
+        if (string.IsNullOrWhiteSpace(user))
+            return true;
+
+        // FIX 6: Log excluded users so skips are visible in the log
+        if (IsExcluded(user))
+        {
+            CPH.LogInfo($"Chat Tracking: Skipping excluded user '{user}'.");
+            return true;
+        }
+
+        // Update per-user chat count
+        // FIX 3: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+        var byUser = GetDict(ChatByUserKey);
+        if (!byUser.ContainsKey(user))
+            byUser[user] = 0;
+        byUser[user]++;
+        SaveDict(ChatByUserKey, byUser);
+
+        // Update total chat count
+        int total = 0;
+        try
+        {
+            var rawTotal = CPH.GetGlobalVar<object>(ChatTotalKey, true);
+            if (rawTotal != null)
+                total = Convert.ToInt32(rawTotal);
+        }
+        catch
+        {
+            // FIX 5: Log when total parse fails so it's visible in the log
+            CPH.LogWarn($"Chat Tracking: Could not parse existing total, resetting to 0.");
+            total = 0;
+        }
+
+        total++;
+        CPH.SetGlobalVar(ChatTotalKey, total, true);
+
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+
+    // FIX 3: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var raw = JsonConvert.DeserializeObject<Dictionary<string, int>>(json)
+                      ?? new Dictionary<string, int>();
+            var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in raw)
+                dict[kv.Key] = kv.Value;
+            return dict;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn($"Chat Tracking: Failed to deserialize '{key}'. Error: {ex.Message}");
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private void SaveDict(string key, Dictionary<string, int> dict)
+    {
+        CPH.SetGlobalVar(key, JsonConvert.SerializeObject(dict), true);
+    }
+}
