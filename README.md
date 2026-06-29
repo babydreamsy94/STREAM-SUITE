@@ -521,7 +521,7 @@ See the repository changelog for the complete release history.
 
 A stream is more than an average viewer number.
 
-It is the people who arrived, returned, chatted, lurked, supported, interacted, joked around, and helped create the community.
+It is the people who are truly there to support you and be a part of your community. 
 
 **Stream Suite: Built for Streamers. Powered by Community.**
 
