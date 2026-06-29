@@ -1,0 +1,254 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+BITS TRACKING - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This analytics module records each valid cheer amount under the cheering viewer
+and maintains a separate running total for all bits received during the stream.
+
+It ignores excluded accounts, rejects missing or non-positive bit values, repairs
+case sensitivity when loading saved dictionaries, and logs each successful update.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: CHEER EVENT READING
+--------------------------------
+- Searches userLogin, userName, and user for the cheering account.
+- Reads the bits argument and converts it to a positive integer.
+
+STEP 2: ACCOUNT FILTERING
+--------------------------------
+- Normalizes the username and skips blank or excluded accounts.
+
+STEP 3: PER-USER ACCUMULATION
+--------------------------------
+- Loads analytics.bits and adds the cheer amount to that viewer’s stored total.
+- Serializes the updated dictionary back to Streamer.bot.
+
+STEP 4: STREAM TOTAL UPDATE
+--------------------------------
+- Reads analytics.totalBits, recovers from an invalid existing value, and adds the new amount.
+- Writes the new stream-wide total and logs the result.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.bits
+--------------------------------
+JSON dictionary containing cumulative bits per viewer for the current stream.
+
+analytics.totalBits
+--------------------------------
+Integer containing the total number of bits received this stream.
+
+ExcludedUsers
+--------------------------------
+Accounts that should never contribute to bits analytics.
+
+bits
+--------------------------------
+Incoming cheer amount supplied by the Twitch event.
+
+userLogin / userName / user
+--------------------------------
+Supported event keys used to identify the cheering viewer.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster’s Twitch login.
+- Replace "botname" with the channel’s custom bot login.
+- Keep, remove, or replace "nightbot", "streamelements", "streamlabs", and "sery_bot" to match the services used by the channel.
+- Leave the ExcludedUsers variable name unchanged unless every reference is updated.
+
+EVENT CONNECTION
+--------------------------------
+- Attach the action to the Twitch cheer/bits event that supplies the bits argument.
+
+VARIABLE NAMES
+--------------------------------
+- Keep analytics.bits and analytics.totalBits unchanged for Stream End compatibility.
+
+LOGGING
+--------------------------------
+- Edit or remove informational log messages after testing, while retaining warnings for invalid events.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BITS ARE NOT COUNTED
+--------------------------------
+- Confirm the event contains a numeric bits value greater than zero.
+- Verify at least one supported username key is present.
+
+TOTAL RESETS TO ZERO
+--------------------------------
+- Inspect analytics.totalBits for a non-numeric value written by another action.
+
+VIEWER IS SKIPPED
+--------------------------------
+- Compare the normalized login name against ExcludedUsers.
+
+PER-USER DATA WILL NOT LOAD
+--------------------------------
+- Check analytics.bits for valid dictionary JSON; the script starts fresh after a deserialization failure.
+
+==============================================================================
+*/
+// Trigger: Twitch Cheer
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+
+public class CPHInline
+{
+    private const string BitsKey = "analytics.bits";
+    private const string TotalBitsKey = "analytics.totalBits";
+
+    private static readonly string[] ExcludedUsers =
+    {
+        "streamername",
+        "botname",
+        "nightbot",
+        "streamelements",
+        "streamlabs",
+        "sery_bot"
+    };
+
+    private bool IsExcluded(string user) =>
+        ExcludedUsers.Contains(user, StringComparer.OrdinalIgnoreCase);
+
+    public bool Execute()
+    {
+        // FIX 5: Guard against null args
+        if (args == null)
+        {
+            CPH.LogWarn("Bit Tracking: args is null, skipping.");
+            return true;
+        }
+
+        // FIX 2: Reordered priority — userLogin first as most reliable on cheer events
+        string userRaw = null;
+        string[] userKeys = { "userLogin", "userName", "user" };
+        foreach (var key in userKeys)
+        {
+            if (args.ContainsKey(key))
+            {
+                var val = args[key]?.ToString();
+                if (!string.IsNullOrWhiteSpace(val)) { userRaw = val; break; }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(userRaw))
+        {
+            CPH.LogWarn("Bit Tracking: No username found in args, skipping.");
+            return true;
+        }
+
+        string user = Normalize(userRaw);
+
+        if (string.IsNullOrWhiteSpace(user) || IsExcluded(user))
+        {
+            CPH.LogInfo($"Bit Tracking: Skipping excluded or empty user '{user}'.");
+            return true;
+        }
+
+        // FIX 6: Log when bits key is missing
+        if (!args.ContainsKey("bits"))
+        {
+            CPH.LogWarn($"Bit Tracking: 'bits' key not found in args for user '{user}', skipping.");
+            return true;
+        }
+
+        int bits = 0;
+        try
+        {
+            bits = Convert.ToInt32(args["bits"]);
+        }
+        catch
+        {
+            CPH.LogWarn($"Bit Tracking: Could not parse bits value '{args["bits"]}' for user '{user}', skipping.");
+            return true;
+        }
+
+        // FIX 4: Bail out early if bits is zero or negative — nothing useful to record
+        if (bits <= 0)
+        {
+            CPH.LogWarn($"Bit Tracking: Bits value is {bits} for user '{user}', skipping.");
+            return true;
+        }
+
+        // Update per-user bits
+        // FIX 3: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+        var bitsDict = GetDict(BitsKey);
+        if (!bitsDict.ContainsKey(user))
+            bitsDict[user] = 0;
+        bitsDict[user] += bits;
+        SaveDict(BitsKey, bitsDict);
+
+        // Update total bits
+        int total = 0;
+        try
+        {
+            var rawTotal = CPH.GetGlobalVar<object>(TotalBitsKey, true);
+            if (rawTotal != null)
+                total = Convert.ToInt32(rawTotal);
+        }
+        catch
+        {
+            CPH.LogWarn($"Bit Tracking: Could not parse existing total bits, resetting to 0 before adding.");
+            total = 0;
+        }
+
+        total += bits;
+        CPH.SetGlobalVar(TotalBitsKey, total, true);
+
+        CPH.LogInfo($"Bit Tracking: Logged {bits} bits from {user}. Their total: {bitsDict[user]}. Stream total: {total}.");
+
+        return true;
+    }
+
+    private string Normalize(string s) => (s ?? "").Trim().TrimStart('@').ToLowerInvariant();
+
+    // FIX 3: Re-wrap deserialized dict to guarantee OrdinalIgnoreCase comparer
+    private Dictionary<string, int> GetDict(string key)
+    {
+        var json = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var raw = JsonConvert.DeserializeObject<Dictionary<string, int>>(json)
+                      ?? new Dictionary<string, int>();
+            var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in raw)
+                dict[kv.Key] = kv.Value;
+            return dict;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn($"Bit Tracking: Failed to deserialize '{key}'. Error: {ex.Message}");
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private void SaveDict(string key, Dictionary<string, int> dict)
+    {
+        CPH.SetGlobalVar(key, JsonConvert.SerializeObject(dict), true);
+    }
+}
