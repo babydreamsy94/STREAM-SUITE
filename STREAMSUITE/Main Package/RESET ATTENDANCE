@@ -1,0 +1,133 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+ATTENDANCE RESET - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This broadcaster-only command clears the current stream’s SeenUsers attendance
+dictionary without deleting the long-term AttendanceHistory records.
+
+It provides a controlled chat-command reset for testing, correcting a session, or
+preparing attendance to be collected again.
+
+[OPTIONAL] - You can also optionally use a button on your Stream Deck for
+easy resets!
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: PERMISSION CHECK
+--------------------------------
+- Reads the invoking user and compares it with StreamerName.
+- Rejects anyone who is not the configured broadcaster.
+
+STEP 2: SESSION RESET
+--------------------------------
+- Creates an empty case-insensitive attendance dictionary.
+- Serializes it and overwrites SeenUsers.
+
+STEP 3: CONFIRMATION
+--------------------------------
+- Sends a success message to chat and writes a reset entry to the log.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Current-stream attendance dictionary erased by this command.
+
+StreamerName
+--------------------------------
+Twitch login authorized to execute the reset.
+
+user
+--------------------------------
+Invoker argument checked against StreamerName.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+STREAMER NAME
+--------------------------------
+- Replace streamername with the broadcaster’s exact Twitch login.
+- Lowercase is recommended because the invoker is converted to lowercase before comparison.
+
+COMMAND TRIGGER
+--------------------------------
+- Bind this action to the intended protected reset command.
+
+CHAT MESSAGES
+--------------------------------
+- Customize the unauthorized and successful-reset responses.
+
+VARIABLE NAME
+--------------------------------
+- Keep SeenUsers unchanged so Attendance Check and interaction commands use the reset data.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BROADCASTER IS DENIED
+--------------------------------
+- Check StreamerName spelling and ensure it is lowercase.
+- Confirm the trigger’s user argument contains the login name.
+
+ATTENDANCE REAPPEARS IMMEDIATELY
+--------------------------------
+- Another chat or attendance trigger may be adding users again after the reset.
+
+LONG-TERM HISTORY WAS EXPECTED TO CLEAR
+--------------------------------
+- This command intentionally resets SeenUsers only; AttendanceHistory is preserved.
+
+NO CONFIRMATION MESSAGE
+--------------------------------
+- Verify the action is attached to the command and reaches Execute.
+
+==============================================================================
+*/
+// Trigger: Command (!resetattendance)
+// References: Newtonsoft.Json
+using System;
+using System.Collections.Generic;
+
+public class CPHInline
+{
+    private const string SeenUsersKey = "SeenUsers";
+
+    // ⭐ Insert your Twitch username here (lowercase)
+    private const string StreamerName = "streamername";
+
+    public bool Execute()
+    {
+        string invoker = args["user"].ToString().ToLower();
+
+        // 🔒 Protection: Only the streamer can run this command
+        if (invoker != StreamerName)
+        {
+            CPH.SendMessage($"/me @{invoker} you do not have permission to reset attendance.");
+            return true;
+        }
+
+        // ⭐ Reset SeenUsers by overwriting with an empty dictionary
+        var emptyDict = new Dictionary<string,int>(StringComparer.OrdinalIgnoreCase);
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(emptyDict);
+        CPH.SetGlobalVar(SeenUsersKey, json, true);
+
+        // Confirmation
+        CPH.SendMessage("/me Attendance Check has been reset!");
+        CPH.LogInfo("SeenUsers cleared via !resetattendance command or Stream Deck button.");
+
+        return true;
+    }
+}
