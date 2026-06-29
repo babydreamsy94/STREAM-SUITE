@@ -1,0 +1,127 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+FIRST! RESET - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This protected command wipes all FIRST! totals, streaks, daily winners, and last
+claim dates by clearing both shared FIRST! global variables.
+
+It is intended for a full season restart or testing reset rather than a single-day
+correction, because every viewer’s FIRST! history is removed at once.
+
+[OPTIONAL] - You can also optionally use a button on your Stream Deck for
+easy resets!
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: BROADCASTER AUTHORIZATION
+--------------------------------
+- Reads the invoking user and compares it with allowedUser.
+- Stops with a denial message for every other account.
+
+STEP 2: COMPLETE FIRST! RESET
+--------------------------------
+- Writes an empty string to FirstStats.
+- Writes an empty string to FirstDates.
+
+STEP 3: CHAT CONFIRMATION
+--------------------------------
+- Announces that wins, streaks, and claim dates were wiped.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+allowedUser
+--------------------------------
+Twitch username permitted to execute the destructive reset.
+
+FirstStats
+--------------------------------
+Stores lifetime win totals and current streaks.
+
+FirstDates
+--------------------------------
+Stores daily winners and last-claim dates.
+
+user
+--------------------------------
+Invoker argument used for the permission comparison.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+AUTHORIZED USER
+--------------------------------
+- Replace streamername with the broadcaster’s Twitch login.
+
+RESET COMMAND
+--------------------------------
+- Attach this action to a private or broadcaster-only command.
+
+CONFIRMATION MESSAGE
+--------------------------------
+- Rewrite the denial and completion messages as desired.
+
+GLOBAL NAMES
+--------------------------------
+- Keep FirstStats and FirstDates aligned with FIRST! Tracker and FIRST! Stats.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+AUTHORIZED USER IS DENIED
+--------------------------------
+- Verify allowedUser spelling; the comparison is case-insensitive.
+- Confirm the command trigger provides user.
+
+ONLY PART OF THE SYSTEM RESETS
+--------------------------------
+- Check that both FirstStats and FirstDates are writable persistent globals.
+
+DATA RETURNS AFTER RESET
+--------------------------------
+- A new FIRST! claim will immediately recreate the dictionaries.
+
+RESET WAS TOO BROAD
+--------------------------------
+- This action has no per-user or per-day mode; restore from backup or add a narrower reset script.
+
+==============================================================================
+*/
+using System;
+
+public class CPHInline
+{
+    public bool Execute()
+    {
+        // 👇 Change this to your Twitch username
+        string allowedUser = "streamername";  
+
+        string invokerRaw = (string)args["user"];
+
+        // Only allow broadcaster
+        if (!invokerRaw.Equals(allowedUser, StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.SendMessage($"⛔ Sorry @{invokerRaw}, but only {allowedUser} can use this command.");
+            return true;
+        }
+
+        // Clear both dictionaries
+        CPH.SetGlobalVar("FirstStats", "", true);
+        CPH.SetGlobalVar("FirstDates", "", true);
+
+        CPH.SendMessage("💣 Reset complete — all FIRST! wins, streaks, and last claim dates wiped.");
+        return true;
+    }
+}
