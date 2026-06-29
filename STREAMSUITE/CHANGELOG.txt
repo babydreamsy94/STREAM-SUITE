@@ -1,0 +1,143 @@
+# Stream Suite Changelog
+
+This changelog was prepared by comparing the supplied Version 1.0 and Version 2.0 Streamer.bot exports against the current template-ready package. It describes behavior, structure, and safety changes without reproducing private credentials or personal identifiers from historical files.
+
+## Release summary
+
+| Version | Actions | Commands | Primary focus |
+|---|---:|---:|---|
+| 1.0 | 24 | 14 | Initial attendance, analytics, community commands, reporting, and reset suite |
+| 2.0 | 25 | 14 | Added Diaper Check and refactored/simplified multiple modules |
+| 3.0 | 25 | 14 | Major reliability, template, documentation, privacy, and event-handling overhaul |
+
+---
+
+## Version 3.0
+
+### Added
+- Comprehensive, matching documentation headers for every C# script, including Purpose, System Flow, Variable Reference, User Customization, and Troubleshooting.
+- Conditional Data Safety documentation for the two modules that handle contact credentials, private paths, or generated viewer reports.
+- A public-template identity model using `streamername`, `botname`, `nightbot`, `streamelements`, `streamlabs`, and `sery_bot` wherever an `ExcludedUsers` collection exists.
+- First Words attendance support, allowing a viewer to be recorded through first chat participation as well as the Attendance Check reward.
+- Duplicate Attendance Check redemption cancellation when `rewardId` and `redemptionId` are available.
+- A consolidated `Reset Variables` utility for clearing current-session attendance and analytics without deleting long-term attendance history.
+- Detailed subscription event routing for standard subscriptions, Prime, resubscriptions, individual gifts, and gift bombs.
+- Subscription detail labels and icons stored in `analytics.subsDetailed`, including tier and resub month context when available.
+- Expanded stream-end support breakdowns, retention calculations, per-user analytics, report saving, and optional SMTP delivery.
+- Null-argument guards, fallback username keys, additional logging, and safer JSON handling across core analytics modules.
+- Non-Affiliate streamer support through replacement of Reward Redemption for certain scripts to commands!
+
+### Changed
+- Renamed the imported group and actions for public template use and removed personalized channel identities from the current package.
+- Replaced historical personal phone, email, password, channel-name, and local-path values with explicit placeholders.
+- Changed session timing from `analytics.sessionStartUtc` to `analytics.sessionStartLocal` so Stream Start and Stream End calculate duration from the same local clock.
+- Changed attendance date checks from direct string matching to parsed calendar dates, reducing duplicate-date errors caused by formatting differences.
+- Restored and standardized bot/service-account filtering in bits, chat, follow, raid, subscription, attendance, and reporting workflows.
+- Changed raid storage from a raider-to-viewer-count dictionary to a unique raider list used directly by the current summary builder.
+- Expanded analytics username extraction to accept multiple Streamer.bot argument names instead of relying on a single key.
+- Refactored community commands for consistent normalization, attendance gating, response pools, and error handling.
+- Replaced the separate Reset Attendance debug action with the broader per-stream reset utility.
+- Updated Stream Start to reset `analytics.subsDetailed` and all current-session analytics before a new broadcast.
+
+### Fixed and hardened
+- Prevented null `args` dictionaries and missing username fields from crashing core trackers.
+- Reduced duplicate attendance records and repeated same-session welcome messages.
+- Handled duplicate attendance redemptions without charging viewers repeatedly when refund IDs are available.
+- Restored exclusions for bots and service accounts that were absent from several Version 2.0 tracker implementations.
+- Separated actual subscription-unit totals (`analytics.totalSubs`) from per-user activity records and added explicit gift-bomb handling to avoid counting the bomb announcement as a second set of gifts.
+- Added Resub and Prime labeling, tier normalization, month extraction fallbacks, and anonymous gift-bomb handling.
+- Made JSON dictionaries case-insensitive after loading so username case variations are less likely to split statistics.
+- Added private logging guidance and stronger error reporting to analytics and report workflows.
+
+### Security and privacy
+- Added explicit warnings against sharing real phone gateways, sender addresses, app passwords, local file paths, generated viewer reports, screenshots, decoded exports, or archived copies.
+- Added a pre-publication inspection checklist and emergency-response steps for accidental credential exposure.
+- Documented the privacy implications of attendance histories, subscription details, bits, raids, chat participation, and saved report files.
+- Recommended revocable app passwords, separate sending accounts, restricted reward access, rate limits, and protected secret storage.
+
+### Known limitations retained and documented
+- `Stream End Protocols` currently derives its displayed subscription total by summing `analytics.subs`; gift activity can make this larger than the true subscription-unit count. Use `analytics.totalSubs` for unit totals.
+- `Reset Pats` clears `PatStats`, while the active pat modules use `PatCounts` and `PatGiven`; update the reset action before relying on it for a full pat reset.
+- `Reset Variables [DEBUG]` writes an object value to `analytics.raids`, while the current raid tracker expects a JSON list; use `[]` for strict compatibility.
+- Email-to-SMS delivery depends on carrier support and may be delayed, filtered, or unavailable.
+- Imported reward IDs are channel-specific and normally need to be reconnected to the destination channel’s rewards.
+
+### Module-level changes
+- **Attendance Check:** Added First Words support, exclusions, null guards, four-key username lookup, duplicate reward refunds, parsed date comparisons, and local-date history.
+- **BITE / BONK!:** Standardized target parsing, attendance validation, normalization, phrase customization, and safe missing-argument behavior.
+- **Bits / Chat / Follow:** Restored excluded-account filtering, added input guards and fallback username keys, preserved per-user and stream totals, and added operational logging.
+- **Diaper Check:** Retained the Version 2.0 command while simplifying target cleanup and documenting its randomized thresholds and attendance requirement.
+- **FIRST!:** Preserved daily winner locking, totals, streaks, milestones, and the 173 reset while templateizing messages and documenting persistent keys.
+- **Hugs / Pats:** Normalized shared-stat access, tightened attendance eligibility, and aligned tracker, stats, and leaderboard documentation.
+- **Raid Tracking:** Changed storage to a unique raider list and added robust username filtering and JSON recovery.
+- **Stream Start:** Added broadcaster attendance/history, local timing, detailed subscription reset, exclusions, logging, and pinned welcome messaging.
+- **Stream End:** Restored richer attendance/retention analytics, detailed per-user support reporting, report persistence, safer placeholders, and expanded privacy documentation.
+- **Subscription Tracking:** Replaced the Version 2.0 generic counter with dedicated handlers for Subscription, Resubscription, Gift Subscription, and Gift Bomb events.
+- **Reset Utilities:** Replaced the narrow attendance debug reset with a suite-wide current-session reset and documented destructive-access controls.
+- **Send Streamer a Text!:** Removed private values, added placeholders, expanded setup guidance, and added comprehensive credential-safety warnings.
+
+---
+
+## Version 2.0
+
+### Added
+- Added the **Diaper Check** interaction module and the `!check` command with a 60-second per-user cooldown.
+- Expanded in-code feature summaries across many actions.
+- Added an explicit `analytics.totalRaids` counter to the Version 2.0 raid and session-summary flow.
+
+### Changed from Version 1.0
+- Increased the action count from 24 to 25 while keeping 14 exported commands.
+- Removed the `!checkin` command trigger from Attendance Check, leaving the channel-point reward as its only exported trigger.
+- Moved actions into a personalized Version 2.0 action group.
+- Refactored many modules into shorter, more direct implementations with simpler JSON load/save helpers.
+- Simplified Bits, Chat Message, Follow, Raid, and Subscription trackers to rely on `userLogin` and direct event fields.
+- Changed raid analytics to a dictionary of raider-to-viewer-count values and added a separate raid-event total.
+- Simplified subscription tracking to a generic `userLogin` plus optional `giftCount` counter, removing the Version 1.0 detailed type-label dictionary from active use.
+- Simplified Stream End Protocols to read explicit numeric totals such as `analytics.totalSubs`, `analytics.totalFollows`, `analytics.totalRaids`, and `analytics.totalBits`.
+- Expanded FIRST! milestone and rejection message wording while preserving the winner lock, streak logic, and 173 reset.
+- Refactored Hugs and Pats modules with revised command messaging and direct dictionary handling.
+- Expanded reset-action permission checks and user-facing confirmation messages.
+
+### Regressions or tradeoffs later addressed in Version 3.0
+- Excluded-user filtering was removed from several simplified analytics trackers, allowing bot/service accounts to be counted.
+- Single-key username assumptions made trackers more sensitive to event-payload differences.
+- The simplified subscription tracker did not distinguish Prime, resubs, gift recipients, gift bomb announcements, or detailed tier labels.
+- Attendance remained reward-only and did not refund duplicate redemptions.
+- Stream timing remained UTC-based and stream-start attendance did not initialize the broadcaster/history workflow used by the current package.
+- Personal identities and credentials were still embedded in the historical export.
+
+---
+
+## Version 1.0
+
+### Initial release
+- Introduced the Stream Suite action group with 24 actions, 14 commands, and a blocking Channel Point Redemptions queue.
+- Added attendance check-in through both a channel-point reward and the `!checkin` command.
+- Created `SeenUsers` for current-session attendance and `AttendanceHistory` for long-term date history.
+- Added per-user and total tracking for chat messages, cheers/bits, follows, raids, and subscriptions.
+- Added detailed subscription labels through `analytics.subsDetailed` and support for gift/Prime/tier interpretation.
+- Added Stream Start Protocols to unlock chat, reset analytics, and store a UTC start timestamp.
+- Added Stream End Protocols to lock chat, classify attendance, calculate retention and engagement, save a report, optionally send it through SMTP, and clear current attendance.
+- Added FIRST! winner, total, streak, milestone, stats, and reset modules.
+- Added attendance-gated BITE, BONK!, hug, and pat interactions plus stats and leaderboard commands.
+- Added broadcaster-only reset commands for attendance, FIRST!, hugs, and pats.
+- Added a separate Reset Attendance debug action for manual testing.
+- Added a private channel-point action for sending the streamer an email-to-SMS message and playing a confirmation sound.
+
+### Original design characteristics
+- Used persistent Streamer.bot global variables as the shared data layer between independent actions.
+- Used normalized lowercase usernames and case-insensitive dictionaries in many modules.
+- Combined live automation, community interaction, session analytics, long-term attendance, and post-stream reporting in one export.
+- Contained channel-specific names, reward IDs, credentials, carrier gateway details, and local paths that required manual sanitization before public sharing.
+
+---
+
+## Upgrade notes
+
+- Back up the current Streamer.bot installation and export existing Stream Suite actions before importing a newer version.
+- Do not overwrite long-term variables such as `AttendanceHistory`, `FirstStats`, `FirstDates`, `HugStats`, `PatCounts`, or `PatGiven` unless a full reset is intended.
+- Reconnect channel-point rewards after import because reward IDs are unique to each channel.
+- Review every command permission and enable only the commands intended for public use.
+- Replace template identities and verify every `ExcludedUsers` list.
+- Keep all tracker and summary variable keys synchronized when customizing names.
+- Test Stream Start, trackers, and Stream End in a controlled session before using the package during a production stream.

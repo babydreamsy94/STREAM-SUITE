@@ -1,0 +1,204 @@
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+STREAM SUITE — QUICK START GUIDE
+
+Made by BabyDreamsy  
+Stream Suite: Built for Streamers. Powered by Community.
+
+---
+
+1. WHAT STREAM SUITE IS
+
+Stream Suite is a package of Streamer.bot actions, commands, triggers, and C# scripts made for Twitch streamers.
+
+It records stream activity such as attendance, chat messages, follows, raids, bits, subscriptions, resubscriptions, gifted subscriptions, stream-start and stream-end information, and community-command statistics.
+
+Stream Suite is designed to be the streamer's main system for reviewing community activity from each stream. It does not replace Twitch for official financial information such as ad revenue, payouts, or tax-related totals.
+
+Attendance is not the same as a viewer count. Stream Suite records a person as attending after a supported trigger recognizes them, such as First Words or !checkin. That person remains in the attendance record for that session even after leaving. Silent viewers who never trigger an observable event may not be recorded.
+
+---
+
+2. WHY STREAM SUITE WAS MADE
+
+I made Stream Suite because Twitch's normal analytics did not always match how my streams actually felt.
+
+A stream could feel active, social, and successful because different people stopped by, chatted, lurked, followed, subscribed, cheered, gifted, or raided at different times. However, the final dashboard could still make the stream look disappointing when most of the attention was placed on average viewers, peak viewers, and similar view-based measurements.
+
+Those numbers are useful, but they do not tell the entire story of a community.
+
+I wanted a system that could answer simpler, more personal questions:
+
+- Who showed up at any point during the stream?
+- Who keeps returning?
+- How active was chat?
+- Who followed, subscribed, cheered, gifted, or raided?
+- How much community activity happened across the full session?
+
+Stream Suite keeps that information locally through Streamer.bot and organizes it around each individual stream. Its purpose is not to create an artificial score. Its purpose is to preserve more of what actually happened.
+
+---
+
+3. HOW STREAM SUITE COMPARES WITH TWITCH AND TRACKING SITES
+
+Twitch's Own Analytics
+
+Twitch's Creator Dashboard and Stream Summary provide official platform information. This includes viewer statistics, chatters, new followers, subscription information, stream comparisons, traffic information, revenue, ads, and payouts.
+
+Twitch remains the correct source for official platform and financial data.
+
+Stream Suite adds a different view by recording custom attendance, per-user activity, command histories, and locally generated session reports according to the streamer's own rules.
+
+Public Twitch Tracking Sites
+
+Public tracking sites generally focus on information such as:
+
+- Average and peak viewers
+- Hours watched
+- Stream history
+- Follower growth
+- Channel rankings
+- Games and categories
+- Broader Twitch trends
+- Comparisons between channels
+
+These sites are useful for seeing public history and outside trends. However, they cannot automatically know a streamer's private Streamer.bot variables, custom attendance rules, excluded-user lists, command activity, or preferred report format.
+
+The Simple Difference
+
+- Twitch Analytics: official platform, viewer, follower, subscription, traffic, revenue, and payout information.
+- Public tracking sites: public history, rankings, growth, viewership, categories, and broader trends.
+- Stream Suite: locally recorded attendance, community activity, Twitch events, commands, and customizable stream-by-stream reporting.
+
+Use Stream Suite as the main system for community-focused stream analytics. Keep using Twitch for official financial and platform-controlled information, and use public tracking sites when outside rankings or broader trends are useful.
+
+---
+
+4. PREREQUISITES
+
+Stream Suite is not a standalone program. It is made for Streamer.bot.
+
+Before installing it, you need:
+
+1. A computer capable of running Streamer.bot  
+   Streamer.bot is primarily designed for Windows. Linux and macOS methods are experimental.
+
+2. The latest stable version of Streamer.bot.
+
+3. An active internet connection.   
+
+---
+
+5. STEP-BY-STEP INSTALLATION GUIDE
+
+Step 1 — Install and Open Streamer.bot
+
+Download the latest stable version of Streamer.bot at https://www.streamer.bot, extract the ZIP file into a normal local folder, and run Streamer.bot.exe.
+
+DO NOT place the application inside a cloud-synchronized folder such as OneDrive, Dropbox, or Google Drive.
+
+Step 2 — Connect Your Twitch Account
+
+In Streamer.bot, open:
+
+Platforms > Twitch > Accounts
+
+Connect your Twitch broadcaster account and confirm that Streamer.bot can connect to Twitch.
+
+A separate bot account is optional.
+
+Step 3 — Back Up Your Existing Setup
+
+Before importing Stream Suite, confirm that Streamer.bot has a recent backup.
+
+This protects any personal actions, commands, triggers, and testing versions you already use.
+
+Step 4 — Download & Import Stream Suite
+
+1. Visit the official Stream Suite download page: https://ko-fi.com/s/58ec72e935
+2. Complete the 100% FREE purchase & download process through Ko-fi.
+3. Extract the downloaded zip file somewhere easy to find, such as your Documents folder.
+4. Locate the main "Stream_Suite_Main_Package.sb" import file. Keep the optional add-on Diaper Check separate until you decide whether to install it.
+5. Click Import on the Streamer.bot toolbar.
+6. Drag the main package import file into the Import String area & click Import
+7. Review the listed actions, commands, triggers, and queue.
+8. Confirm that the import is not overwriting personal items you need to keep.
+
+✨ OPTIONAL ADD-ON INCLUDED!✨
+
+Diaper Check
+
+- A completely optional ABDL-themed command module.
+- Do not import it unless it fits your stream and community.
+
+Step 6 — Review and Enable the Commands/Channel Point Rewards/Triggers
+
+Imported commands will be disabled by default. Review their permissions and enable only the ones you plan to use.
+Make sure to make Channel Point Rewards for Attendance Check & FIRST!
+
+Attendance
+
+- !checkin/"Attendance Check" Channel Point Redemption - Attendance Check!
+
+Fun commands
+
+- !bite - BITE
+- !bonk - BONK!
+- !hug - Hugs Tracker
+- !hstats - Hugs Stats
+- !hboard - Hugs Leaderboard
+- !pat - Pats Tracker
+- !pstats - Pats Stats
+- !pboard - Pats Leaderboard
+- !fstats - FIRST! Stats
+
+Administrative reset commands
+
+- !resetfirst - Reset FIRST!
+- !resethugs - Reset Hugs
+- !resetpats - Reset Pats
+- !resetattendance- Reset Attendance
+- !resetvar - Reset Variables
+
+Reset commands should never be available to ordinary viewers.
+
+Confirm that the following trigger types are connected to the correct Stream Suite actions:
+
+- First Words — automatic attendance
+- Chat Message — chat-message tracking
+- Follow — follow tracking
+- Raid — raid tracking
+- Cheer — bits tracking
+- Subscription - sub tracking
+- Resubscription - sub tracking
+- Gift Subscription - sub tracking
+- Gift Bomb - sub tracking
+- Stream Online — stream-start protocols
+- Stream Offline — stream-end protocols
+
+Channel Point Reward IDs are specific to each Twitch channel. Reconnect or replace those reward bindings when needed.
+
+Each code includes a Feature Summary explaining its purpose, system flow, variables, customization options, and troubleshooting information.
+
+Check the Feature Summary inside the relevant codes whenever you need more information or assistance.
+
+---
+
+RESEARCH REFERENCES
+---
+
+Twitch
+
+- Twitch Analytics Overview: https://help.twitch.tv/s/article/channel-analytics
+- Twitch Stream Summary: https://help.twitch.tv/s/article/stream-summary
+
+Representative Public Tracking Sites
+
+- TwitchTracker: https://twitchtracker.com/
+- SullyGnome: https://sullygnome.com/
+- Streams Charts: https://streamscharts.com/overview
