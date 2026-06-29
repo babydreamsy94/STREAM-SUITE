@@ -1,0 +1,155 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+FIRST! STATS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+This command reports a viewer’s lifetime FIRST! wins and their currently stored
+consecutive FIRST! streak.
+
+It performs a self-lookup using the invoking account, reads the shared FirstStats
+dictionary, and selects a response that distinguishes active streaks, new streaks,
+inactive streaks, and viewers who have never claimed FIRST!.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: VIEWER LOOKUP
+--------------------------------
+- Reads the user argument and normalizes it for key construction.
+
+STEP 2: STATS LOADING
+--------------------------------
+- Loads FirstStats as a case-insensitive integer dictionary.
+- Builds the viewer-specific _total and _streak keys.
+
+STEP 3: STATUS EVALUATION
+--------------------------------
+- Checks whether the viewer has any recorded wins.
+- Separates streak values greater than one, exactly one, and zero.
+
+STEP 4: CHAT REPORT
+--------------------------------
+- Sends the matching personalized statistics message to Twitch chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+FirstStats
+--------------------------------
+Dictionary containing per-viewer total and streak values.
+
+<username>_total
+--------------------------------
+Key holding the viewer’s all-time FIRST! claim count.
+
+<username>_streak
+--------------------------------
+Key holding the viewer’s current consecutive-day streak.
+
+user
+--------------------------------
+Invoker supplied by the command trigger and used for the self-lookup.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND TRIGGER
+--------------------------------
+- Bind this script to the channel’s FIRST! statistics command.
+
+RESPONSE WORDING
+--------------------------------
+- Edit the four CPH.SendMessage statements to change tone, punctuation, or emojis.
+- Keep invokerRaw, total, and streak interpolation where those values should appear.
+
+SHARED VARIABLE
+--------------------------------
+- Leave FirstStats unchanged so this command reads the data created by FIRST! Tracker.
+
+TARGET BEHAVIOR
+--------------------------------
+- The current script always reports the invoker; add target parsing only when public lookups are desired.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+KNOWN WINNER SHOWS ZERO
+--------------------------------
+- Confirm FIRST! Tracker writes to FirstStats using the same normalized username.
+- Inspect the dictionary for <username>_total and <username>_streak keys.
+
+NO RESPONSE
+--------------------------------
+- Verify the command trigger includes the user argument.
+
+STREAK LOOKS OUTDATED
+--------------------------------
+- The stats command only reads data; confirm FIRST! Tracker updated the value after the latest claim.
+
+CASE VARIATIONS CREATE SEPARATE USERS
+--------------------------------
+- Make sure all FIRST! actions normalize usernames consistently.
+
+==============================================================================
+*/
+using System;
+using System.Collections.Generic;
+
+public class CPHInline
+{
+    public bool Execute()
+    {
+        // ⭐ SAFE USERNAME PARSING ⭐
+        string invokerRaw = null;
+        if (args.ContainsKey("user"))
+            invokerRaw = args["user"]?.ToString();
+        if (string.IsNullOrWhiteSpace(invokerRaw))
+            return true;
+        // Normalize username
+        string invoker = invokerRaw.Trim().TrimStart('@').ToLowerInvariant();
+        // Load stats dictionary safely (case-insensitive)
+        var stats = CPH.GetGlobalVar<Dictionary<string, int>>("FirstStats", true) ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        // Ensure dictionary is case-insensitive
+        if (!(stats.Comparer.Equals(StringComparer.OrdinalIgnoreCase)))
+        {
+            stats = new Dictionary<string, int>(stats, StringComparer.OrdinalIgnoreCase);
+        }
+
+        // Build keys using normalized username
+        string streakKey = $"{invoker}_streak";
+        string totalKey = $"{invoker}_total";
+        int streak = stats.ContainsKey(streakKey) ? stats[streakKey] : 0;
+        int total = stats.ContainsKey(totalKey) ? stats[totalKey] : 0;
+        if (total > 0)
+        {
+            if (streak > 1)
+            {
+                CPH.SendMessage($"📊 @{invokerRaw}, you’ve claimed FIRST! {total} times overall, and your current streak is {streak} FIRST!s.");
+            }
+            else if (streak == 1)
+            {
+                CPH.SendMessage($"📊 @{invokerRaw}, you’ve claimed FIRST! {total} times overall. You’re at the start of a new streak!");
+            }
+            else
+            {
+                CPH.SendMessage($"📊 @{invokerRaw}, you’ve claimed FIRST! {total} times overall, but you’re not on a streak right now.");
+            }
+        }
+        else
+        {
+            CPH.SendMessage($"Hold up there, @{invokerRaw}! You haven’t claimed FIRST! yet.");
+        }
+
+        return true;
+    }
+}
