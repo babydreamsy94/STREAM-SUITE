@@ -1,0 +1,97 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+TRACK STREAM CATEGORY - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Stores the latest Twitch category and title so Archive Completed Stream can
+attach the correct context to historical records and reports.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: RECEIVE CHANNEL EVENT
+--------------------------------
+- Runs on Stream Online and Stream Update.
+
+STEP 2: FIND CATEGORY
+--------------------------------
+- Checks gameName, game, categoryName, and category in order.
+- Saves a nonblank value to analytics.currentCategory.
+
+STEP 3: FIND TITLE
+--------------------------------
+- Checks status, title, and streamTitle.
+- Saves a nonblank value to analytics.currentStreamTitle.
+
+STEP 4: PRESERVE LAST VALID VALUE
+--------------------------------
+- Leaves the previous category or title unchanged when an event omits that
+  field.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.currentCategory
+--------------------------------
+Latest detected Twitch category.
+
+analytics.currentStreamTitle
+--------------------------------
+Latest detected Twitch stream title.
+
+SUPPORTED CATEGORY ARGUMENTS
+--------------------------------
+gameName, game, categoryName, and category.
+
+SUPPORTED TITLE ARGUMENTS
+--------------------------------
+status, title, and streamTitle.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+TRIGGER SETUP
+--------------------------------
+- Keep both Twitch Stream Online and Stream Update triggers attached.
+
+ARGUMENT COMPATIBILITY
+--------------------------------
+- Add future Streamer.bot argument names to GetFirstArg when needed.
+
+LOG WORDING
+--------------------------------
+- Log-message wording can change without affecting tracking.
+
+MULTI-CATEGORY STREAMS
+--------------------------------
+- The completed record stores the most recently detected category and title,
+  not a segment-by-segment history.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+REPORT SHOWS UNKNOWN CATEGORY
+--------------------------------
+- Confirm this action ran before Stream End archived the record.
+- Check the log for a missing category argument.
+
+TITLE IS OLD
+--------------------------------
+- Confirm Stream Update events fire when the Twitch title changes.
+
+VALUE DOES NOT CLEAR
+--------------------------------
+Missing event data intentionally preserves the last valid value.
+
+==============================================================================
+*/

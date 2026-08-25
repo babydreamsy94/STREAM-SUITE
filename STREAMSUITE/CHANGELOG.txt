@@ -1,0 +1,165 @@
+# Stream Suite Changelog
+
+This changelog describes the major behavior, structure, compatibility, safety, and documentation changes made throughout Stream Suite's public releases. Private credentials and personal identifiers from historical creator files are intentionally excluded.
+
+## Version 4.0
+
+### Added
+- Added dedicated weekly, monthly, and yearly report generators with separate disabled commands and locally saved text reports.
+- Added true attendee-overlap retention to stream, weekly, monthly, and yearly analytics. Retention now compares the actual people from one period with the people who returned during the next period.
+- Added `analytics.streamHistory` as the shared long-term archive used by the report generators.
+- Added a completed-stream archive script inside Stream End Protocols so each finished stream can supply the long-term reporting system.
+- Added migration support for older `analytics.monthlyHistory` records while preserving the original variable.
+- Added matching Feature Summary files for every included readable C# script.
+- Added detailed setup, customization, privacy, security, and troubleshooting guidance for Send Streamer a Text and Stream End Protocols.
+- Added a separate optional-package folder for Diaper Check so the Main Package remains suitable for channels that do not want the ABDL-themed command.
+- Added a public Quick Start Guide explaining Stream Suite's purpose, limits, installation, commands, triggers, and relationship with Twitch analytics.
+
+### Changed
+- Increased the Main Package to 16 commands by including weekly, monthly, and yearly report commands alongside the existing community and reset commands.
+- Changed the import title to **STREAM SUITE**, the author to **babydreamsy**, and the public description to the final Stream Suite release description.
+- Regenerated public action, command, trigger, sub-action, and queue identifiers so the release is independent of the creator's personal installation.
+- Renamed imported actions and groups for clean public-package presentation.
+- Standardized every imported action tree with a green purpose note, a light-blue Feature Summary reminder, and a clearly named code folder containing the red editing warning and C# sub-action.
+- Removed creator-specific reward IDs, contact details, credentials, usernames, private paths, Stream Deck bindings, and other channel-specific values.
+- Removed Stream Deck Stats from the public Main Package because it is not part of the requested core release.
+- Removed redundant `Trigger:` and `References:` labels from readable C# files.
+- Removed the repeated introductory descriptions from weekly, monthly, and yearly report code. Those scripts now begin directly with their `using` statements because their Feature Summaries provide the full documentation.
+- Disabled all imported command resources by default so streamers can review permissions and cooldowns before enabling them.
+- Kept Stream Start Protocols, Stream End Protocols, Send Streamer a Text, and the optional Diaper Check action disabled until their private configuration is reviewed.
+- Standardized the public report footer around the Stream Suite tagline: **Built By Streamers. Powered by Community.**
+
+### Fixed and hardened
+- Corrected the public `.sb` files to use the complete Streamer.bot v1.0.7 export envelope and schema 24.
+- Restored the blocking Channel Point Redemptions queue required by FIRST! Tracker and Send Streamer a Text, then repaired both queue references.
+- Corrected Stream Start Protocols for the v1.0.7 pinned-message API by passing `null` to `TwitchUpdatePinnedMessageDuration`, keeping the message pinned until stream end.
+- Fixed Reset Pats so it clears `PatCounts` and `PatGiven`, the variables used by the active pat modules.
+- Updated Reset Variables to clear current-session subscription detail and attendance-summary data while preserving long-term attendance history.
+- Hardened weekly, monthly, and yearly report loading, date selection, legacy migration, comparison periods, and failed-save behavior.
+- Kept readable C# files synchronized exactly with the code embedded inside both Streamer.bot imports.
+- Preserved command, parent, and queue references after public ID regeneration.
+
+### Security and privacy
+- Removed all real sender addresses, phone gateways, app passwords, private report paths, reward IDs, and personal channel values from the public package.
+- Disabled email-to-SMS delivery by default and added explicit placeholder checks before any message can be sent.
+- Added data-theft warnings for actions that can contain credentials, contact information, viewer histories, or generated analytics reports.
+- Documented current email-to-SMS limitations, carrier support concerns, Google App Password setup, safer account separation, and credential-revocation steps.
+- Kept destructive reset commands disabled and documented their broadcaster-only permission requirements.
+- Preserved long-term attendance and stream-history data when resetting only the current session.
+
+### Package layout
+- **Main Package:** 28 actions, 16 disabled commands, one blocking action queue, 29 readable C# files, and 29 matching Feature Summaries.
+- **Optional Diaper Check:** one disabled action, one disabled command, one readable C# file, and one matching Feature Summary.
+- Stream End Protocols contains two readable C# modules: the main end-of-stream workflow and the completed-stream archive.
+
+### Known limitations retained and documented
+- Attendance is event-based, not a live viewer count. Silent viewers who never activate a supported trigger may not be recorded.
+- Channel Point Reward IDs belong to individual Twitch channels and must be created or reconnected after import.
+- Imported commands are disabled by default and require a manual permission review.
+- Email-to-SMS support depends on the carrier and may be delayed, filtered, changed, or unavailable.
+- Generated attendance histories and reports can reveal viewing patterns and should be stored and shared carefully.
+- Stream Suite does not replace Twitch for official revenue, payout, advertisement, tax, or platform-controlled information.
+
+### Module-level changes
+- **Attendance Check:** Preserved automatic First Words attendance while removing the creator's private reward binding for destination-channel setup.
+- **BITE / BONK!:** Kept attendance gating, target handling, randomized responses, and safe missing-argument behavior.
+- **Bits / Chat / Follow / Raid:** Preserved excluded-account filtering, fallback username handling, duplicate protection, and per-stream totals.
+- **FIRST!:** Preserved winner locking, totals, streaks, milestones, the 173 reset, and the blocking redemption queue.
+- **Hugs / Pats:** Kept trackers, stats, leaderboards, attendance eligibility, and corrected reset-variable alignment.
+- **Report Generators:** Added weekly, monthly, and yearly reporting with exact attendee-overlap retention and comparison periods.
+- **Stream Start:** Resets current analytics, stores the local session clock, unlocks chat, and uses the v1.0.7 pinned-message API.
+- **Stream End:** Produces the final summary, stores current attendance analytics, saves the local report, optionally sends an SMS summary, clears current attendance, and runs the stream-history archive.
+- **Subscription Tracking:** Preserved standard subscriptions, Prime, resubscriptions, individual gifts, gift bombs, tiers, months, and detailed labels.
+- **Reset Utilities:** Corrected current-session reset coverage while protecting long-term attendance and reporting history.
+- **Send Streamer a Text:** Retained optional email-to-SMS and sound support with disabled defaults, placeholders, and expanded security guidance.
+- **Diaper Check:** Remains fully optional, separate from the Main Package, and disabled by default.
+
+---
+
+## Version 3.0
+
+### Added
+- Added comprehensive matching documentation headers for every C# script, including Purpose, System Flow, Variable Reference, User Customization, and Troubleshooting.
+- Added Conditional Data Safety documentation for modules that handle contact credentials, private paths, or generated viewer reports.
+- Added a public-template identity model using `streamername`, `botname`, and common service-account placeholders.
+- Added First Words attendance support so a viewer could be recorded through first chat participation as well as the Attendance Check reward.
+- Added duplicate Attendance Check redemption cancellation when `rewardId` and `redemptionId` are available.
+- Added a consolidated Reset Variables utility for clearing current-session attendance and analytics without deleting long-term attendance history.
+- Added detailed subscription routing for standard subscriptions, Prime, resubscriptions, individual gifts, and gift bombs.
+- Added null-argument guards, fallback username keys, additional logging, and safer JSON handling across core analytics modules.
+- Added non-Affiliate support by moving selected reward-only workflows to commands.
+
+### Changed
+- Split the release into a 24-action Main Package and a separate one-action Diaper Check add-on.
+- Renamed the imported group and actions for public template use and removed personalized channel identities.
+- Replaced historical phone, email, password, channel-name, and local-path values with explicit placeholders.
+- Changed session timing from `analytics.sessionStartUtc` to `analytics.sessionStartLocal` so Stream Start and Stream End use the same clock.
+- Changed attendance date checks from direct string matching to parsed calendar dates.
+- Restored and standardized bot and service-account filtering across analytics and reporting workflows.
+- Refactored community commands for consistent normalization, attendance gating, response pools, and error handling.
+- Updated Stream Start to reset `analytics.subsDetailed` and all current-session analytics before a new broadcast.
+
+### Fixed and hardened
+- Prevented null `args` dictionaries and missing username fields from crashing core trackers.
+- Reduced duplicate attendance records and repeated same-session welcome messages.
+- Separated subscription-unit totals from per-user activity records and avoided double-counting gift-bomb announcements.
+- Added Resub and Prime labeling, tier normalization, month fallbacks, and anonymous gift handling.
+- Made loaded username dictionaries case-insensitive to reduce split statistics caused by capitalization differences.
+- Added stronger error reporting and private-data guidance to analytics and reporting workflows.
+
+---
+
+## Version 2.0
+
+### Added
+- Added the **Diaper Check** interaction module and the `!check` command with a per-user cooldown.
+- Expanded in-code feature descriptions across many actions.
+- Added an explicit `analytics.totalRaids` counter to the raid and session-summary flow.
+
+### Changed from Version 1.0
+- Increased the action count from 24 to 25 while keeping 14 exported commands.
+- Removed the `!checkin` command trigger from Attendance Check, leaving the channel-point reward as its only exported trigger.
+- Refactored multiple trackers into shorter implementations with simpler JSON helpers.
+- Simplified subscription tracking to a generic counter and removed detailed type labels from active use.
+- Simplified Stream End Protocols to read explicit numeric totals.
+- Expanded FIRST! milestone and rejection wording while preserving winner locking and streak logic.
+- Expanded reset-action permission checks and user-facing confirmations.
+
+### Regressions later addressed
+- Excluded-user filtering was absent from several simplified analytics trackers.
+- Single-key username assumptions made trackers sensitive to event-payload differences.
+- Subscription tracking did not distinguish Prime, resubs, gifts, gift bombs, or detailed tiers.
+- Attendance remained reward-only and did not refund duplicate redemptions.
+- Personal identities and credentials were still embedded in the historical export.
+
+---
+
+## Version 1.0
+
+### Initial release
+- Introduced the Stream Suite action group with 24 actions, 14 commands, and a blocking Channel Point Redemptions queue.
+- Added attendance check-in through a channel-point reward and the original `!checkin` command.
+- Created `SeenUsers` for current-session attendance and `AttendanceHistory` for long-term date history.
+- Added per-user and total tracking for chat messages, cheers, follows, raids, and subscriptions.
+- Added Stream Start and Stream End protocols for session setup, analytics, reports, optional SMTP delivery, and current-attendance cleanup.
+- Added FIRST! winner, total, streak, milestone, stats, and reset modules.
+- Added attendance-gated BITE, BONK!, hug, and pat interactions with stats and leaderboards.
+- Added broadcaster-only attendance, FIRST!, hug, and pat reset commands.
+- Added a private channel-point action for sending the streamer an email-to-SMS message and playing a confirmation sound.
+
+### Original design characteristics
+- Used persistent Streamer.bot global variables as the shared data layer between independent actions.
+- Used normalized lowercase usernames and case-insensitive dictionaries in many modules.
+- Combined live automation, community interaction, session analytics, long-term attendance, and post-stream reporting in one export.
+- Contained channel-specific names, reward IDs, credentials, carrier details, and local paths that required sanitization before public sharing.
+
+---
+
+## Upgrade notes
+
+- Back up Streamer.bot and export any existing Stream Suite actions before importing Version 4.0.
+- Do not overwrite `AttendanceHistory`, `analytics.streamHistory`, `FirstStats`, `FirstDates`, `HugStats`, `PatCounts`, or `PatGiven` unless a full reset is intended.
+- Reconnect Channel Point Rewards after import because reward IDs are unique to each Twitch channel.
+- Review every imported command, permission, cooldown, action state, and placeholder before enabling anything.
+- Keep shared global-variable names synchronized when customizing scripts.
+- Test Stream Start, trackers, reports, and Stream End in a duplicated or controlled Streamer.bot setup before using the package during a live stream.

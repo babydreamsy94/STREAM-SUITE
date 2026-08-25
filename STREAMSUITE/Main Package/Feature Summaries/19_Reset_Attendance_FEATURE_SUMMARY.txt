@@ -1,0 +1,89 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+RESET ATTENDANCE - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Lets only the configured broadcaster clear current-stream SeenUsers through
+!resetattendance.
+
+It does not erase AttendanceHistory or permanent report history.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY INVOKER
+--------------------------------
+- Normalizes the command user.
+
+STEP 2: AUTHORIZE BROADCASTER
+--------------------------------
+- Compares the invoker with StreamerName.
+- Rejects every other user.
+
+STEP 3: CLEAR CURRENT ATTENDANCE
+--------------------------------
+- Overwrites SeenUsers with an empty JSON dictionary.
+
+STEP 4: CONFIRM RESET
+--------------------------------
+- Sends a Twitch confirmation and writes a log entry.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+StreamerName
+--------------------------------
+Required lowercase broadcaster-login placeholder.
+
+SeenUsers
+--------------------------------
+Current-stream attendance dictionary that is cleared.
+
+AttendanceHistory
+--------------------------------
+Not read or modified by this action.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REQUIRED PLACEHOLDER
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase and
+  omit @.
+
+COMMAND SECURITY
+--------------------------------
+- Review the imported !resetattendance command and keep it disabled until
+  StreamerName is configured.
+- Consider restricting the command to broadcaster or moderator permissions in
+  Streamer.bot as a second layer.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BROADCASTER IS DENIED
+--------------------------------
+- Confirm StreamerName matches the actual Twitch login, not the display-name
+  capitalization.
+
+HISTORY DISAPPEARS
+--------------------------------
+This action does not touch AttendanceHistory. Check Reset Variables or other
+custom actions.
+
+VIEWERS CHECK IN AGAIN
+--------------------------------
+That is expected after SeenUsers is cleared during a live stream.
+
+==============================================================================
+*/

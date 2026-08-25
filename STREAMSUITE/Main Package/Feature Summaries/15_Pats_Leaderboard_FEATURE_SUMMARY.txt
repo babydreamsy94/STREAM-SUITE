@@ -1,0 +1,93 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+PATS LEADERBOARD - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Displays the top three current attendees who have given or received lifetime
+pats.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ MODE
+--------------------------------
+- Parses givers or receivers after !pboard.
+- Shows usage help when the mode is missing or invalid.
+
+STEP 2: LOAD DATA
+--------------------------------
+- Reads PatGiven, PatCounts, and SeenUsers.
+
+STEP 3: FILTER AND RANK
+--------------------------------
+- Keeps only users present in SeenUsers.
+- Sorts the selected category descending and takes the top three.
+
+STEP 4: SEND BOARD
+--------------------------------
+- Posts the giver or receiver leaderboard.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+PatGiven
+--------------------------------
+Lifetime number of pats given per user.
+
+PatCounts
+--------------------------------
+Lifetime number of pats received per user.
+
+SeenUsers
+--------------------------------
+Current-stream attendance filter.
+
+rawInput
+--------------------------------
+Expected mode: givers or receivers.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND SETUP
+--------------------------------
+- The imported command is !pboard.
+- Use !pboard givers or !pboard receivers, then enable the command.
+
+BOARD SIZE
+--------------------------------
+- Change Take(3) and the displayed Top 3 wording together.
+
+ATTENDANCE FILTER
+--------------------------------
+- Keep SeenUsers filtering when the leaderboard should celebrate current
+  participants.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BOARD IS EMPTY
+--------------------------------
+- Confirm Pats Tracker wrote PatGiven and PatCounts.
+- At least one user with stats must also be checked in now.
+
+WRONG MODE
+--------------------------------
+- Use exactly givers or receivers.
+
+RESET DID NOT WORK
+--------------------------------
+- Use the v4.0 Reset Pats action, which clears both PatGiven and PatCounts.
+
+==============================================================================
+*/

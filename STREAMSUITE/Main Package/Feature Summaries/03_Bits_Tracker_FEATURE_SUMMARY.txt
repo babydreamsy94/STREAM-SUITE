@@ -1,0 +1,99 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+BITS TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Tracks Twitch cheers for the current stream, storing both the total Bits
+cheered and a per-user breakdown for Stream End and historical reports.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY CHEERER
+--------------------------------
+- Reads userLogin first, then other supported username arguments.
+- Normalizes the login and skips excluded accounts.
+
+STEP 2: VALIDATE BITS
+--------------------------------
+- Requires the bits argument and parses it as an integer.
+- Skips zero, negative, missing, or invalid values.
+
+STEP 3: UPDATE PER-USER TOTAL
+--------------------------------
+- Loads analytics.bits as a case-insensitive dictionary and adds the cheer
+  amount to that user.
+
+STEP 4: UPDATE STREAM TOTAL
+--------------------------------
+- Adds the same amount to analytics.totalBits and logs the new totals.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.bits
+--------------------------------
+JSON dictionary of current-stream Bits totals by username.
+
+analytics.totalBits
+--------------------------------
+Integer current-stream Bits total.
+
+ExcludedUsers
+--------------------------------
+Broadcaster, bot, and service accounts ignored by the tracker.
+
+bits
+--------------------------------
+Twitch Cheer argument containing the amount received.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase.
+- Replace "botname" with the custom bot login, or remove it when no separate
+  bot account is used.
+- Keep, remove, or add common service accounts so automated accounts are not
+  included in analytics.
+
+TRIGGER SETUP
+--------------------------------
+- Keep the Twitch Cheer trigger attached.
+- Do not attach this action to generic chat events.
+
+SHARED VARIABLES
+--------------------------------
+- Keep analytics.bits and analytics.totalBits synchronized with Stream Start,
+  Stream End, Reset Variables, and report scripts.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BITS ARE NOT COUNTED
+--------------------------------
+- Confirm the Twitch Cheer trigger supplies bits.
+- Check the log for invalid or excluded-user warnings.
+
+TOTAL DOES NOT MATCH
+--------------------------------
+- Make sure only one Bits Tracker action handles each cheer.
+- Confirm Stream Start resets both Bits variables before each broadcast.
+
+PER-USER DATA IS LOST
+--------------------------------
+- Inspect analytics.bits for valid JSON and avoid changing its value type.
+
+==============================================================================
+*/

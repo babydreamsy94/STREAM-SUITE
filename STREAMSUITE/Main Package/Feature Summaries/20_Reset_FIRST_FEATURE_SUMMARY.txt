@@ -1,0 +1,83 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+RESET FIRST! - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Lets only the configured broadcaster erase all lifetime FIRST! totals,
+streaks, winners, and last-claim dates through !resetfirst.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY INVOKER
+--------------------------------
+- Reads the command user.
+
+STEP 2: AUTHORIZE BROADCASTER
+--------------------------------
+- Compares the invoker with allowedUser and rejects everyone else.
+
+STEP 3: CLEAR FIRST DATA
+--------------------------------
+- Resets FirstStats and FirstDates.
+
+STEP 4: CONFIRM RESET
+--------------------------------
+- Posts the destructive reset confirmation.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+allowedUser
+--------------------------------
+Required broadcaster-login placeholder set to streamername in the template.
+
+FirstStats
+--------------------------------
+Lifetime wins and streaks; cleared.
+
+FirstDates
+--------------------------------
+Daily winners and last-claim dates; cleared.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REQUIRED PLACEHOLDER
+--------------------------------
+- Replace "streamername" with the lowercase broadcaster login.
+
+COMMAND SECURITY
+--------------------------------
+- Keep !resetfirst disabled until configured.
+- Restrict the command to the broadcaster in Streamer.bot too.
+
+BACKUP
+--------------------------------
+- This reset is not reversible inside the action. Back up Streamer.bot before
+  intentionally clearing long-term FIRST! data.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BROADCASTER IS DENIED
+--------------------------------
+- Use the Twitch login rather than display name and omit @.
+
+STATS RETURN AFTER RESET
+--------------------------------
+- Confirm only one FirstStats and FirstDates variable scope is being used.
+- Check whether a backup or test action rewrites old data.
+
+==============================================================================
+*/

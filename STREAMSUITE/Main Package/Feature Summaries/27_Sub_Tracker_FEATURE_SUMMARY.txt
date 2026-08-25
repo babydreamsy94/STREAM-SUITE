@@ -1,0 +1,127 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+SUB TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Tracks Twitch subscriptions, resubscriptions, individual gifts, and gift bombs
+for the current stream.
+
+It stores subscription units per user plus detailed labels for tier, type,
+months, and gift counts while avoiding gift-bomb double counting.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: DETECT EVENT TYPE
+--------------------------------
+- Reads triggerName, eventSource, or eventType.
+- Routes Subscription, ReSubscription, Gift Subscription, and Gift Bomb to
+  separate handlers.
+
+STEP 2: NORMALIZE USER AND TIER
+--------------------------------
+- Reads the best available user arguments.
+- Normalizes Prime and Tier 1–3 values and skips excluded accounts.
+
+STEP 3: TRACK STANDARD SUBS AND RESUBS
+--------------------------------
+- Adds one subscription unit to the subscriber.
+- Stores a detailed Prime, Sub, or Resub label and resub month count.
+
+STEP 4: TRACK GIFTS
+--------------------------------
+- Records gifted recipients.
+- Counts individual gift events once and records the gifter label.
+- For gift bombs, increments the stream total by the bomb size and avoids
+  incrementing again for child gift events marked fromGiftBomb.
+
+STEP 5: SAVE DATA
+--------------------------------
+- Writes analytics.subs, analytics.subsDetailed, and analytics.totalSubs.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.subs
+--------------------------------
+JSON dictionary of recorded subscription units by user.
+
+analytics.subsDetailed
+--------------------------------
+JSON dictionary of readable event labels by user.
+
+analytics.totalSubs
+--------------------------------
+Integer total subscription units added this stream.
+
+ExcludedUsers
+--------------------------------
+Accounts ignored by subscription analytics.
+
+TRIGGER ARGUMENTS
+--------------------------------
+Subscription tier, recipient, gifter, cumulative months, gift count,
+fromGiftBomb, and indexed gift-recipient values.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase.
+- Replace "botname" with the custom bot login, or remove it when no separate
+  bot account is used.
+- Keep, remove, or add common service accounts so automated accounts are not
+  included in analytics.
+
+TRIGGER SETUP
+--------------------------------
+- Keep all four Twitch triggers attached: Subscription, Gift Subscription,
+  ReSubscription, and Gift Bomb.
+- Do not attach a second copy of the tracker.
+
+LABELS AND ICONS
+--------------------------------
+- Edit GetIcon and BuildLabel to change report presentation without changing
+  unit totals.
+
+RAW ARGUMENT LOGGING
+--------------------------------
+- The script logs raw event arguments for diagnosis.
+- Remove the raw logging line if the private Streamer.bot log should contain
+  less event detail.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+SUB EVENT IS UNKNOWN
+--------------------------------
+- Inspect triggerName, eventSource, or eventType in the Streamer.bot log.
+- Confirm each Twitch event trigger is attached to this action.
+
+GIFT BOMB IS DOUBLE COUNTED
+--------------------------------
+- Confirm child gift events supply fromGiftBomb.
+- Use only one tracker and keep the gift-bomb handler intact.
+
+TIER IS WRONG
+--------------------------------
+- Inspect the tier argument names and add a supported value to NormalizeTier
+  if Twitch changes its event payload.
+
+DETAILS BLEED INTO NEXT STREAM
+--------------------------------
+- Confirm Stream Start and Reset Variables both clear analytics.subsDetailed.
+
+==============================================================================
+*/

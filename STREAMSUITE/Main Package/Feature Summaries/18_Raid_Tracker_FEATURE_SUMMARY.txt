@@ -1,0 +1,88 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+RAID TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Records the normalized username of every unique incoming Twitch raider during
+the current stream. Viewer counts are intentionally not stored.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY RAIDER
+--------------------------------
+- Reads from from_broadcaster_user_login, userLogin, userName, or user.
+- Normalizes the login and skips excluded accounts.
+
+STEP 2: LOAD RAID LIST
+--------------------------------
+- Reads analytics.raids as a JSON list.
+
+STEP 3: PREVENT DUPLICATES
+--------------------------------
+- Skips a raider already stored for the current stream.
+
+STEP 4: SAVE EVENT
+--------------------------------
+- Appends the raider and logs the new raid count.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.raids
+--------------------------------
+JSON list of unique raider logins for the current stream.
+
+ExcludedUsers
+--------------------------------
+Accounts ignored by raid analytics.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase.
+- Replace "botname" with the custom bot login, or remove it when no separate
+  bot account is used.
+- Keep, remove, or add common service accounts so automated accounts are not
+  included in analytics.
+
+TRIGGER SETUP
+--------------------------------
+- Keep the Twitch Raid trigger attached.
+- Do not convert analytics.raids to a dictionary unless Stream End and every
+  report model are updated.
+
+VIEWER-COUNT POLICY
+--------------------------------
+- This tracker intentionally counts raid events, not raiding viewer totals.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+RAID IS NOT RECORDED
+--------------------------------
+- Confirm the Twitch Raid trigger fires and supplies a supported username.
+- Check the log for excluded-user or JSON warnings.
+
+SAME RAIDER COUNTS ONCE
+--------------------------------
+This is intentional duplicate-event protection for a single stream.
+
+STREAM END SHOWS ZERO
+--------------------------------
+- Confirm Stream Start initialized analytics.raids as [] rather than {}.
+
+==============================================================================
+*/

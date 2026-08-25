@@ -1,0 +1,128 @@
+/* 
+███████╗████████╗██████╗ ███████╗ █████╗ ███╗   ███╗     ███████╗██╗   ██╗██╗████████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗████╗ ████║     ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
+███████╗   ██║   ██████╔╝█████╗  ███████║██╔████╔██║     ███████╗██║   ██║██║   ██║   █████╗
+╚════██║   ██║   ██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║     ╚════██║██║   ██║██║   ██║   ██╔══╝
+███████║   ██║   ██║  ██║███████╗██║  ██║██║ ╚═╝ ██║     ███████║╚██████╔╝██║   ██║   ███████╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝     ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+
+==============================================================================
+GENERATE WEEKLY REPORT - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Builds a Monday-through-Sunday community report from analytics.streamHistory,
+compares it with the previous week, and saves a readable UTF-8 text file.
+
+Retention uses exact audience overlap: previous-week unique attendees who
+returned during the selected week divided by the previous week’s unique
+attendees.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: LOAD HISTORY
+--------------------------------
+- Reads analytics.streamHistory.
+- Migrates legacy analytics.monthlyHistory only when the newer history is
+  empty.
+
+STEP 2: CHOOSE WEEK
+--------------------------------
+- Accepts weekStart, week, date, or a YYYY-MM-DD token in rawInput.
+- With no date, selects the week containing the newest valid archived stream
+  to preserve Monday rollover behavior.
+
+STEP 3: BUILD COMPARISON PERIODS
+--------------------------------
+- Collects selected-week, previous-week, and earlier baseline records.
+- Requires complete attendee rosters before displaying retention.
+
+STEP 4: CALCULATE REPORT
+--------------------------------
+- Totals streams, duration, attendance occurrences, unique and new attendees,
+  chat, follows, subscription units, Bits, and raids.
+- Finds the most- and least-attended streams and calculates true weekly
+  retention.
+
+STEP 5: SAVE AND PUBLISH
+--------------------------------
+- Writes Documents\StreamSummaries\Weekly
+  Reports\Stream_Suite_Weekly_Report_DATE_to_DATE.txt.
+- Stores the report text, range, and path in latest-report globals.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.streamHistory
+--------------------------------
+Permanent list of archived completed-stream records.
+
+analytics.monthlyHistory
+--------------------------------
+Legacy history read only for one-time migration when streamHistory is empty.
+
+analytics.latestWeeklyReport
+--------------------------------
+Most recently generated report text.
+
+analytics.latestWeeklyReportStart / End
+--------------------------------
+Selected Monday and Sunday in YYYY-MM-DD format.
+
+analytics.latestWeeklyReportPath
+--------------------------------
+Full saved report path.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND INPUT
+--------------------------------
+- The imported command is !wreport.
+- Use !wreport YYYY-MM-DD to regenerate the Monday-through-Sunday week
+  containing that date.
+- Review permissions before enabling the command because reports write files.
+
+REPORT APPEARANCE
+--------------------------------
+- Edit BuildReport labels, emojis, section order, or footer without changing
+  calculations.
+
+OUTPUT LOCATION
+--------------------------------
+- Edit SaveReport only when a different folder or naming pattern is required.
+
+HISTORY COMPATIBILITY
+--------------------------------
+- Keep the StreamRecord model synchronized with Stream End’s archive and the
+  monthly/yearly generators.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+NO REPORT IS CREATED
+--------------------------------
+- Confirm archived streams exist inside the selected week.
+- Use YYYY-MM-DD input and inspect the logged date range.
+
+RETENTION SHOWS N/A
+--------------------------------
+- A complete previous-week attendee roster is required.
+- Older history containing totals without ReturningUsers and NewUsers cannot
+  provide a valid baseline.
+
+MONDAY SELECTS WRONG WEEK
+--------------------------------
+- With no date, the script uses the newest archived stream.
+- Supply an explicit date when regenerating another week.
+
+FILE CANNOT BE SAVED
+--------------------------------
+- Confirm Streamer.bot can write to Documents\StreamSummaries\Weekly Reports.
+- Check the log for the exact I/O error.
+
+==============================================================================
+*/
