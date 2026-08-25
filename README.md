@@ -58,6 +58,7 @@ Depending on which modules are enabled, Stream Suite can track:
 - Hugs, pats, bites, bonks, and other community interactions
 - Optional Stream Deck-based reset controls
 - Optional report delivery through email or email-to-SMS where supported
+- Weekly, Monthly, and Yearly Projection Reporting
 
 Stream Suite is intended to act as a streamer's primary **community-focused analytics system** while Twitch remains the official source for platform-controlled information such as revenue, payouts, ad performance, and other financial totals.
 
