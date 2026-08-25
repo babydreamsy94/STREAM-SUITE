@@ -152,7 +152,7 @@ Stream Suite is **not** a standalone application.
 You need:
 
 - A Windows computer capable of running Streamer.bot
-- **Streamer.bot v1.0.7**, the stable release this package was built and checked against
+- The latest STABLE version of Streamer.bot
 - A Twitch broadcaster account connected to Streamer.bot
 - An active internet connection for Twitch events and account features
 - A safe backup of your current Streamer.bot setup
