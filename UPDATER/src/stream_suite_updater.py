@@ -35,7 +35,7 @@ APP_NAME = "Stream Suite Update Center"
 APP_VERSION = "0.1.0"
 DEFAULT_MANIFEST_URL = (
     "https://raw.githubusercontent.com/"
-    "babydreamsy94/STREAM-SUITE/main/deployment/release-catalog.json"
+    "babydreamsy94/STREAM-SUITE/main/UPDATER/deployment/release-catalog.json"
 )
 
 COLORS = {
