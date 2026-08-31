@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "defaultChannel": "stable",
+  "releases": [
+    {
+      "schemaVersion": 1,
+      "suiteVersion": "4.0.0",
+      "displayVersion": "4.0 FINAL",
+      "releaseName": "Stream Suite 4.0 FINAL",
+      "releaseDate": "2026-08-18",
+      "channel": "stable",
+      "streamerBot": {
+        "minimumVersion": "1.0.7",
+        "testedVersion": "1.0.7"
+      },
+      "platforms": [
+        {
+          "name": "Windows",
+          "status": "verified",
+          "note": "This is the officially tested Stream Suite environment."
+        },
+        {
+          "name": "Linux/Wine",
+          "status": "not-verified",
+          "note": "Imported .NET reference paths can differ under Wine; review the compatibility notes before installing."
+        }
+      ],
+      "package": {
+        "fileName": "Stream_Suite_4.0_FINAL_PUBLIC_RELEASE.zip",
+        "url": "https://github.com/babydreamsy94/STREAM-SUITE/releases/download/v4.0.0/Stream_Suite_4.0_FINAL_PUBLIC_RELEASE.zip",
+        "sha256": "44df08f77fb54db232841cc4ecc8c7ef48666f9a51bddb8013384ebf6f06bc6a",
+        "sizeBytes": 231508
+      },
+      "installation": {
+        "mode": "guided-import",
+        "guideFile": "Stream_Suite_4.0_FINAL/START_HERE.txt",
+        "requiresBackup": true
+      },
+      "releaseNotes": [
+        "Community-focused attendance, retention, chat, support-event, and category analytics.",
+        "Weekly, monthly, and yearly performance reports.",
+        "Twenty-eight Main Package actions plus a separate optional package.",
+        "Rewritten setup documentation, Feature Summaries, readable source files, and privacy guidance.",
+        "Verified against the stable Streamer.bot v1.0.7 release on Windows."
+      ],
+      "releaseNotesUrl": "https://github.com/babydreamsy94/STREAM-SUITE/releases/tag/v4.0.0",
+      "breakingChanges": false,
+      "notice": "Version 4.0 is the first release prepared for the Stream Suite Update Center."
+    }
+  ]
+}

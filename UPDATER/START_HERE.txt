@@ -1,0 +1,52 @@
+STREAM SUITE UPDATE CENTER — PROJECT HANDOFF
+
+Version 0.1.0 MVP
+Built By Streamers. Powered by Community.
+
+WHAT THIS IS
+
+This is the complete source project for the first Stream Suite Update Center.
+It checks a public release catalog, shows current and previous Stream Suite
+versions, downloads verified packages, and guides the user through installation.
+
+It does not automatically edit Streamer.bot.
+
+WHAT IS ALREADY WORKING
+
+- Update checks
+- Version Library
+- Update, reinstall, and downgrade detection
+- Downgrade recovery warnings
+- Streamer.bot and platform compatibility notes
+- SHA-256 and byte-size verification
+- Safe ZIP extraction
+- Setup guide and .sb file discovery
+- Persistent user settings
+- Automated tests
+- Automated Windows EXE build instructions
+
+WHAT MUST HAPPEN BEFORE PUBLIC DISTRIBUTION
+
+1. Create a GitHub Release tagged v4.0.0.
+
+2. Attach the exact file:
+   Stream_Suite_4.0_FINAL_PUBLIC_RELEASE.zip
+
+3. Merge this project's contents into the root of the STREAM-SUITE repository.
+
+4. Commit and push deployment/release-catalog.json.
+
+5. Run the "Build Stream Suite Update Center" GitHub Action.
+
+6. Download and test StreamSuiteUpdateCenter.exe on Windows.
+
+7. Only after that test succeeds, prepare the one-time Ko-fi updater download.
+
+READ NEXT
+
+- README.md — Full project and build overview
+- docs/PUBLISHING_AN_UPDATE.md — Exact first-time and future release procedure
+- docs/RECOVERY_AND_DOWNGRADES.md — Safe rollback behavior
+- docs/RELEASE_CATALOG_REFERENCE.md — Version Library metadata
+- VERIFICATION_REPORT.md — Completed checks and remaining Windows check
+
