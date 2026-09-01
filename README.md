@@ -1,6 +1,6 @@
-<img width="1920" height="1080" alt="STREAM SUITE" src="https://github.com/user-attachments/assets/f164cd9c-622b-4bfe-8df6-92f370c38455" />
+<img width="1920" height="1080" alt="StreamFolk" src="https://github.com/user-attachments/assets/f164cd9c-622b-4bfe-8df6-92f370c38455" />
 
-# STREAM SUITE
+# STREAMFOLK
 
 > **Built By Streamers. Powered by Community.**
 >
@@ -11,17 +11,17 @@
 [![Platform](https://img.shields.io/badge/platform-Twitch-9146FF)](https://www.twitch.tv/)
 [![Download](https://img.shields.io/badge/download-100%25%20FREE-2ea44f)](https://ko-fi.com/s/58ec72e935)
 
-> Introducing **STREAM SUITE**, a comprehensive analytics & fun commands system designed to upgrade your streams while also providing a much clearer & more **REALISTIC** insight into your stream's performance!
+> Introducing **STREAMFOLK**! Formerly known as "StreamFolk", STREAMFOLK is a comprehensive analytics & fun commands system designed to upgrade your streams while also providing a much clearer & more **REALISTIC** insight into your stream's performance!
 
-Stream Suite is a community-focused collection of Streamer.bot actions, commands, triggers, queues, and C# scripts for Twitch streamers.
+STREAMFOLK is a community-focused collection of Streamer.bot actions, commands, triggers, queues, and C# scripts for Twitch streamers.
 
 It records observable participation throughout each broadcast, preserves selected community history between streams, creates individual stream summaries, and generates weekly, monthly, and yearly reports. It also includes fun commands and community statistics designed to help a channel develop its own history and personality.
 
-Stream Suite does **not** replace Twitch's official financial, payout, advertisement, tax, traffic, or platform-controlled information. It provides an additional, locally managed view of the people and activity that helped make each stream what it was.
+It does **NOT** replace Twitch's official financial, payout, advertisement, or tax information. Instead, it provides an alternative, locally managed view of the people and activity that helped make each stream what it was.
 
 ## Quick Links
 
-- **[Download Stream Suite for free](https://ko-fi.com/s/58ec72e935)**
+- **[Download StreamFolk for free](https://ko-fi.com/s/58ec72e935)**
 - **[Read the Quick Start Guide](./START_HERE.txt)**
 - **[Read the complete Changelog](./CHANGELOG.txt)**
 - **[Browse the Feature Summaries](./Main%20Package/Feature%20Summaries/)**
@@ -30,7 +30,7 @@ Stream Suite does **not** replace Twitch's official financial, payout, advertise
 
 ## Table of Contents
 
-- [Why Stream Suite Exists](#why-stream-suite-exists)
+- [Why StreamFolk Exists](#why-streamfolk-exists)
 - [What Questions It Answers](#what-questions-it-answers)
 - [Core Features](#core-features)
 - [How It Compares](#how-it-compares)
@@ -53,21 +53,21 @@ Stream Suite does **not** replace Twitch's official financial, payout, advertise
 
 ---
 
-## Why Stream Suite Exists
+## Why StreamFolk Exists
 
-Stream Suite began as a small attendance-tracking system.
+StreamFolk began as a small attendance-tracking system.
 
 It was created after I realized that Twitch's standard viewer metrics did not always reflect how my streams actually felt. A broadcast could be active, social, and memorable because different people stopped by, chatted, followed, subscribed, cheered, gifted, or raided at different times. The final dashboard could still make that same stream appear disappointing when most of the attention was placed on average and peak viewers.
 
 Those numbers can be useful, but they do not tell the entire story of a community.
 
-Stream Suite was built to preserve more of that story. Its purpose is not to manufacture a performance score or declare whether a stream was "good." Its purpose is to help the streamer understand who observably participated, how they interacted, and whether people returned over time.
+StreamFolk was built to preserve more of that story. Its purpose is not to manufacture a performance score or declare whether a stream was "good." Its purpose is to help the streamer understand who observably participated, how they interacted, and whether people returned over time.
 
 ---
 
 ## What Questions It Answers
 
-Depending on the enabled modules, Stream Suite can help answer questions such as:
+Depending on the enabled modules, StreamFolk can help answer questions such as:
 
 ### Attendance
 
@@ -101,7 +101,7 @@ Depending on the enabled modules, Stream Suite can help answer questions such as
 
 The simplest distinction is:
 
-> **Twitch tells you how many people were watching. Stream Suite helps record who observably participated, how they participated, and whether they returned.**
+> **Twitch tells you how many people were watching. StreamFolk helps record who observably participated, how they participated, and whether they returned.**
 
 ---
 
@@ -139,15 +139,15 @@ The simplest distinction is:
 |---|---|
 | **Twitch Analytics** | Official viewer statistics, traffic sources, followers, subscriptions, advertisements, revenue, payouts, and other platform-controlled information |
 | **Public tracking sites** | Public stream history, viewership trends, rankings, games, categories, follower growth, and comparisons between channels |
-| **Stream Suite** | Locally recorded attendance, returning attendees, community activity, Twitch events, fun commands, attendee-overlap retention, and customizable stream-by-stream reporting |
+| **StreamFolk** | Locally recorded attendance, returning attendees, community activity, Twitch events, fun commands, attendee-overlap retention, and customizable stream-by-stream reporting |
 
-Stream Suite complements Twitch and public tracking sites. It is not an official replacement for either one.
+StreamFolk complements Twitch and public tracking sites. It is not an official replacement for either one.
 
 ---
 
 ## Requirements and Compatibility
 
-Stream Suite is **not** a standalone application.
+StreamFolk is **not** a standalone application.
 
 You need:
 
@@ -159,7 +159,7 @@ You need:
 
 ### Supported Environment
 
-The verified target for Stream Suite 4.0 is Streamer.bot v1.0.7 on Windows.
+The verified target for StreamFolk 4.0 is Streamer.bot v1.0.7 on Windows.
 
 Streamer.bot setups running through Linux compatibility layers, macOS workarounds, alpha builds, or later schema versions may behave differently and are not guaranteed by this release.
 
@@ -309,13 +309,13 @@ Read its Feature Summary before changing or enabling it.
 
 Before importing anything, create or confirm a recent backup of your existing Streamer.bot installation.
 
-### 2. Download Stream Suite
+### 2. Download StreamFolk
 
 Download the complete public package from Ko-fi:
 
 **https://ko-fi.com/s/58ec72e935**
 
-Ko-fi may display the download as a purchase, but Stream Suite is **100% free**.
+Ko-fi may display the download as a purchase, but StreamFolk is **100% free**.
 
 ### 3. Extract the Package
 
@@ -328,9 +328,9 @@ Do not run Streamer.bot or store its working installation inside OneDrive, Dropb
 1. Open Streamer.bot v1.0.7.
 2. Click **Import** on the toolbar.
 3. Open the `Main Package` folder.
-4. Drag `Stream_Suite_4.0_Main_Package.sb` into the **Import String** area.
+4. Drag the included .sb files into the **Import String** area.
 5. Confirm that the preview shows:
-   - Title: **STREAM SUITE**
+   - Title: **StreamFolk**
    - Author: **babydreamsy**
    - 28 actions
    - 16 commands
@@ -392,9 +392,9 @@ Review each `ExcludedUsers` collection. These lists prevent the broadcaster, bot
 
 Create and connect your own rewards when desired:
 
-- **Attendance Check** → `STREAM SUITE - Attendance Check`
-- **FIRST!** → `STREAM SUITE - FIRST! Tracker`
-- **Send Streamer a Text** → `STREAM SUITE - Send Streamer a Text`
+- **Attendance Check** → `StreamFolk - Attendance Check`
+- **FIRST!** → `StreamFolk - FIRST! Tracker`
+- **Send Streamer a Text** → `StreamFolk - Send Streamer a Text`
 
 Attendance Check already includes a First Words trigger, so ordinary first chat participation can record attendance without the optional reward.
 
@@ -420,7 +420,7 @@ Never enable these features until their Feature Summaries have been read complet
 
 ### Attendance Is Not Viewer Count
 
-Stream Suite cannot identify every silent viewer.
+StreamFolk cannot identify every silent viewer.
 
 An account is recorded as attending only after Streamer.bot receives a supported observable event, such as:
 
@@ -430,7 +430,7 @@ An account is recorded as attending only after Streamer.bot receives a supported
 
 After an account is recorded, it remains part of that session's attendance record even if the person leaves later.
 
-Therefore, Stream Suite attendance answers:
+Therefore, StreamFolk attendance answers:
 
 > **Who was observably present at some point during the stream?**
 
@@ -438,7 +438,7 @@ It does not represent the number of people watching simultaneously.
 
 ### True Retention
 
-Stream Suite 4.0 calculates retention through attendee overlap.
+StreamFolk 4.0 calculates retention through attendee overlap.
 
 Instead of comparing only attendance totals, it compares the actual eligible attendees from one stream or reporting period with the people who returned during the next one.
 
@@ -453,7 +453,7 @@ Retention remains dependent on observable attendance. A person who silently watc
 
 ## Data Storage and Privacy
 
-Stream Suite stores its core information locally through Streamer.bot global variables, JSON-formatted dictionaries, and generated report files.
+StreamFolk stores its core information locally through Streamer.bot global variables, JSON-formatted dictionaries, and generated report files.
 
 Depending on the modules enabled, stored information may include:
 
@@ -493,7 +493,7 @@ Store generated reports carefully. Attendance histories and per-user activity ca
 ### The `.sb` File Will Not Import
 
 - Confirm that you are using **Streamer.bot v1.0.7**.
-- Confirm that you selected `Stream_Suite_4.0_Main_Package.sb`.
+- Confirm that you selected tje "Main Package".sb file
 - Do not paste or edit the encoded `.sb` file manually.
 - Re-download the package if the file may have been damaged or altered.
 - Back up Streamer.bot before retrying the import.
@@ -550,7 +550,7 @@ Email-to-SMS support can be delayed, filtered, changed, or discontinued by a car
 ## Upgrading from an Earlier Version
 
 1. Back up Streamer.bot.
-2. Export your existing Stream Suite actions as an additional recovery copy.
+2. Export your existing StreamFolk actions as an additional recovery copy.
 3. Preserve long-term variables unless you intentionally want a complete reset.
 4. Import Version 4.0.
 5. Reconnect channel-specific rewards.
@@ -574,15 +574,15 @@ Do not overwrite or delete those values unless a full reset is intended.
 
 ## Frequently Asked Questions
 
-### Is Stream Suite free?
+### Is StreamFolk free?
 
-Yes. Stream Suite 4.0 FINAL is a **100% free download** through Ko-fi.
+Yes. StreamFolk 4.0 FINAL is a **100% free download** through Ko-fi.
 
-### Does Stream Suite replace Twitch Analytics?
+### Does StreamFolk replace Twitch Analytics?
 
 No. Twitch remains the official source for platform viewer statistics, traffic, advertisements, revenue, payouts, taxes, and account-controlled information.
 
-### Does Stream Suite count every lurker?
+### Does StreamFolk count every lurker?
 
 No. It records event-based attendance. A completely silent viewer who never activates a supported event may not be recorded.
 
@@ -592,7 +592,7 @@ No. First Words can automatically record a chatter's attendance. The Channel Poi
 
 ### Is a Stream Deck required?
 
-No. Stream Suite works through Streamer.bot. You may connect private Stream Deck controls to selected actions if you choose.
+No. StreamFolk works through Streamer.bot. You may connect private Stream Deck controls to selected actions if you choose.
 
 ### Do I have to install Diaper Check?
 
@@ -604,11 +604,7 @@ Do not publish a customized export until you have inspected every action and rem
 
 ### Is Linux supported?
 
-The verified release target is Streamer.bot v1.0.7 on Windows. Linux compatibility-layer setups are outside the guaranteed configuration for Stream Suite 4.0.
-
-### Is Version 4.0 really the final version?
-
-Version 4.0 is the final planned public feature release. Necessary documentation or compatibility corrections may still be published when appropriate.
+The verified release target is Streamer.bot v1.0.7 on Windows. Linux compatibility-layer setups are outside the guaranteed configuration for StreamFolk 4.0.
 
 ---
 
@@ -616,14 +612,14 @@ Version 4.0 is the final planned public feature release. Necessary documentation
 
 ### Official Download
 
-**[Download Stream Suite 4.0 FINAL from Ko-fi](https://ko-fi.com/s/58ec72e935)**
+**[Download StreamFolk 4.0 FINAL from Ko-fi](https://ko-fi.com/s/58ec72e935)**
 
 ### Reporting a Problem
 
 When reporting an issue, include:
 
 - Your Streamer.bot version
-- The affected Stream Suite action
+- The affected StreamFolk action
 - Whether the C# code compiled
 - Whether the action appeared in Action History
 - The expected result
@@ -650,9 +646,9 @@ Read [CHANGELOG.txt](./CHANGELOG.txt) for the complete release history.
 
 ## Disclaimer
 
-Stream Suite is an independent community project created by **babydreamsy**. It is not an official Twitch, Streamer.bot, TwitchTracker, SullyGnome, or Streams Charts product.
+StreamFolk is an independent community project created by **babydreamsy**. It is not an official Twitch, Streamer.bot, TwitchTracker, SullyGnome, or Streams Charts product.
 
-Twitch remains the authoritative source for official account, platform, revenue, advertisement, payout, tax, and viewer information.
+Twitch remains the authoritative source for official account, revenue, advertisement, payout, & tax information.
 
 ---
 
@@ -660,4 +656,4 @@ Twitch remains the authoritative source for official account, platform, revenue,
 
 A stream is more than an average viewer number. It is the people who showed up, returned, interacted, supported one another, and helped create the community around it.
 
-**STREAM SUITE: Built By Streamers. Powered by Community.**
+**StreamFolk: Built By Streamers. Powered by Community.**
