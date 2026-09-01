@@ -6,7 +6,7 @@
 >
 > Created by **[babydreamsy](https://www.twitch.tv/babydreamsy)**
 
-[![Version](https://img.shields.io/badge/version-4.0%20FINAL-856ed6)](./CHANGELOG.txt)
+[![Version](https://img.shields.io/badge/version-4.0-856ed6)](./CHANGELOG.txt)
 [![Streamer.bot](https://img.shields.io/badge/Streamer.bot-v1.0.7+-01d7fb)](https://streamer.bot/downloads)
 [![Platform](https://img.shields.io/badge/platform-Twitch-9146FF)](https://www.twitch.tv/)
 [![Download](https://img.shields.io/badge/download-100%25%20FREE-2ea44f)](https://ko-fi.com/s/58ec72e935)
