@@ -11,7 +11,7 @@
 [![Platform](https://img.shields.io/badge/platform-Twitch-9146FF)](https://www.twitch.tv/)
 [![Download](https://img.shields.io/badge/download-100%25%20FREE-2ea44f)](https://ko-fi.com/s/58ec72e935)
 
-> Introducing **STREAMFOLK**! Formerly known as "StreamFolk", STREAMFOLK is a comprehensive analytics & fun commands system designed to upgrade your streams while also providing a much clearer & more **REALISTIC** insight into your stream's performance!
+> Introducing **STREAMFOLK**! Formerly known as "Stream Suite", STREAMFOLK is a comprehensive analytics & fun commands system designed to upgrade your streams while also providing a much clearer & more **REALISTIC** insight into your stream's performance!
 
 STREAMFOLK is a community-focused collection of Streamer.bot actions, commands, triggers, queues, and C# scripts for Twitch streamers.
 
