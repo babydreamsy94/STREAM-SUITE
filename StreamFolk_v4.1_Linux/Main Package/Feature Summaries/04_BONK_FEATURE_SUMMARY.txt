@@ -1,0 +1,88 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+BONK! - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Runs the playful !bonk command for checked-in attendees, supporting both
+self-bonks and a named target.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ COMMAND ARGUMENTS
+--------------------------------
+- Reads the invoker and optional target, then normalizes both logins.
+
+STEP 2: VERIFY ATTENDANCE
+--------------------------------
+- Loads SeenUsers.
+- Rejects an invoker or named target who has not checked in this stream.
+
+STEP 3: CHOOSE RESPONSE TYPE
+--------------------------------
+- Uses the self-bonk pool when no target is supplied or the invoker targets
+  themselves.
+- Uses the targeted bonk pool for another eligible attendee.
+
+STEP 4: SEND RESPONSE
+--------------------------------
+- Chooses one random phrase and posts it to Twitch chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Attendance dictionary used to authorize the invoker and target.
+
+rawInput
+--------------------------------
+Optional target text supplied after !bonk.
+
+user
+--------------------------------
+Triggering Twitch user.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+PHRASE POOLS
+--------------------------------
+- Edit bonkPhrases and selfBonkPhrases to match the channel tone.
+
+COMMAND SETUP
+--------------------------------
+- Review and enable the imported !bonk command.
+- Use Starts With mode when viewers should be able to name a target.
+
+ATTENDANCE GATE
+--------------------------------
+- Keep SeenUsers validation for StreamFolk-only participation.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+TARGET IS NOT FOUND
+--------------------------------
+- Use a Twitch login without extra words.
+- Confirm the target has already been recorded in SeenUsers.
+
+COMMAND DOES NOTHING
+--------------------------------
+- Enable both the action and command.
+- Confirm the trigger supplies user and rawInput.
+
+STATS ARE NOT CREATED
+--------------------------------
+BONK! is a response-only command and intentionally stores no leaderboard or
+lifetime statistics.
+
+==============================================================================
+*/

@@ -1,0 +1,125 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+GENERATE MONTHLY REPORT - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Builds a calendar-month performance report from permanent stream history, adds
+a weekly breakdown, compares the selected month with the previous month, and
+saves the result.
+
+True monthly retention measures how many unique attendees from the previous
+calendar month attended again during the selected month.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: LOAD HISTORY
+--------------------------------
+- Reads analytics.streamHistory and safely migrates legacy monthly history
+  when necessary.
+
+STEP 2: CHOOSE MONTH
+--------------------------------
+- Accepts current, previous, YYYY-MM, or any YYYY-MM-DD date through month,
+  date, reportMonth, or rawInput.
+- Defaults to the current local calendar month.
+
+STEP 3: BUILD MONTH TOTALS
+--------------------------------
+- Collects current, previous, and earlier baseline records.
+- Calculates duration, attendance, chat, support, highlights, and exact
+  previous-month audience overlap.
+
+STEP 4: CREATE BREAKDOWN AND COMPARISON
+--------------------------------
+- Groups selected-month streams into Monday-based weekly blocks clipped to the
+  calendar month.
+- Shows month-to-month numeric and retention changes when valid baselines
+  exist.
+
+STEP 5: SAVE AND PUBLISH
+--------------------------------
+- Writes Documents\StreamSummaries\Monthly
+  Reports\StreamFolk_Monthly_Report_YYYY-MM.txt.
+- Stores the report text, month, range, and path in persistent globals.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.streamHistory
+--------------------------------
+Permanent archived stream records.
+
+analytics.monthlyHistory
+--------------------------------
+Legacy migration source only.
+
+analytics.latestMonthlyReport
+--------------------------------
+Latest monthly report text.
+
+analytics.latestMonthlyReportMonth
+--------------------------------
+Selected YYYY-MM month key.
+
+analytics.latestMonthlyReportStart / End
+--------------------------------
+Selected calendar-month date range.
+
+analytics.latestMonthlyReportPath
+--------------------------------
+Full saved report path.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND INPUT
+--------------------------------
+- The imported command is !mreport.
+- Examples: !mreport previous, !mreport 2026-07, or !mreport 2026-07-15.
+- Review permissions before enabling the command.
+
+REPORT APPEARANCE
+--------------------------------
+- Edit BuildReport and AppendWeeklyBreakdown for labels, emojis, and ordering.
+
+OUTPUT LOCATION
+--------------------------------
+- Edit SaveReport to change the folder or filename.
+
+TAGLINE
+--------------------------------
+- The public template uses “Built By Streamers. Powered by Community.” in
+  place of channel-specific footer text.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+NO REPORT IS CREATED
+--------------------------------
+- Confirm at least one archived stream exists in the requested calendar month.
+- Check the log for the resolved month.
+
+RETENTION SHOWS N/A
+--------------------------------
+- The immediately previous month needs a complete attendee roster.
+- N/A is intentional when a truthful baseline cannot be built.
+
+WEEKLY BREAKDOWN CROSSES MONTHS
+--------------------------------
+The displayed week is intentionally clipped to the selected calendar month.
+
+REPORT IS OVERWRITTEN
+--------------------------------
+Regenerating the same month intentionally replaces that month’s report file.
+Copy it first if multiple versions are needed.
+
+==============================================================================
+*/

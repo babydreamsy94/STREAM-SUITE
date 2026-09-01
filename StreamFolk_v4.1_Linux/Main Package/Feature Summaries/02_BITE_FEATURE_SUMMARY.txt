@@ -1,0 +1,94 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+BITE! - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Runs the playful !bite command while using StreamFolk attendance as an
+eligibility gate.
+
+It supports self-bites and targeted bites, chooses a random response, and
+prevents users who have not checked in from participating.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ COMMAND USER
+--------------------------------
+- Finds the invoker from user, userName, userLogin, or userDisplayName.
+- Normalizes the invoker and parses an optional target from rawInput.
+
+STEP 2: LOAD ATTENDANCE
+--------------------------------
+- Reads SeenUsers as a case-insensitive dictionary.
+- Rejects the command when the invoker has not attended this stream.
+
+STEP 3: VALIDATE TARGET
+--------------------------------
+- When another viewer is named, verifies that target is also in SeenUsers.
+- Treats a blank target or the invoker’s own name as a self-bite.
+
+STEP 4: SEND RESULT
+--------------------------------
+- Selects a random self-bite or targeted-bite phrase and sends exactly one
+  Twitch message.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Attendance dictionary required by both the invoker and a named target.
+
+rawInput
+--------------------------------
+Command text after !bite; normally contains only the optional target login.
+
+user / userName / userLogin / userDisplayName
+--------------------------------
+Supported invoker arguments.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+PHRASE POOLS
+--------------------------------
+- Edit bitePhrases and selfBitePhrases without changing attendance logic.
+- Keep invoker and target placeholders in interpolated phrases.
+
+COMMAND SETUP
+--------------------------------
+- Review the imported !bite command cooldown and permissions, then enable it.
+- Keep the command in Starts With mode so an optional target can follow it.
+
+ATTENDANCE REQUIREMENT
+--------------------------------
+- Remove SeenUsers validation only if the command should work for
+  non-attendees.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+COMMAND ALWAYS SELF-TARGETS
+--------------------------------
+- Confirm rawInput contains the target after Streamer.bot removes !bite.
+- Keep the trigger connected to the imported !bite command.
+
+VALID USER IS REJECTED
+--------------------------------
+- Confirm Attendance Check ran first and normalized the same Twitch login.
+- Inspect SeenUsers for valid JSON.
+
+NO MESSAGE APPEARS
+--------------------------------
+- Confirm the action and imported command are enabled.
+- Check the Streamer.bot log for a missing invoker warning.
+
+==============================================================================
+*/

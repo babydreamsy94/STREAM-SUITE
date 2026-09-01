@@ -1,0 +1,81 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+RESET PATS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Lets only the configured broadcaster erase both lifetime pat-giver and
+pat-receiver totals through !resetpats.
+
+The v4.1 template corrects the older reset mismatch by clearing the actual
+PatGiven and PatCounts variables used by the pat modules.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY AND AUTHORIZE
+--------------------------------
+- Normalizes the command user and compares it with StreamerName.
+
+STEP 2: CLEAR BOTH DICTIONARIES
+--------------------------------
+- Replaces PatGiven and PatCounts with empty JSON dictionaries.
+
+STEP 3: CONFIRM RESET
+--------------------------------
+- Posts a chat confirmation.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+PatGiven
+--------------------------------
+Lifetime pats-given dictionary; cleared.
+
+PatCounts
+--------------------------------
+Lifetime pats-received dictionary; cleared.
+
+StreamerName
+--------------------------------
+Required lowercase broadcaster login.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REQUIRED PLACEHOLDER
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login.
+
+COMMAND SECURITY
+--------------------------------
+- Review !resetpats permissions and keep it disabled until configured.
+
+BACKUP
+--------------------------------
+- The reset is permanent unless a Streamer.bot backup is restored.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+OLD RESET CLEARS NOTHING
+--------------------------------
+- Install this v4.1 version; the earlier personal script cleared PatStats,
+  which the trackers do not use.
+
+BROADCASTER IS DENIED
+--------------------------------
+- Use the exact lowercase Twitch login without @.
+
+ONE BOARD STILL HAS DATA
+--------------------------------
+- Confirm both PatGiven and PatCounts were cleared.
+
+==============================================================================
+*/

@@ -1,0 +1,252 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+STREAM END PROTOCOLS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Finalizes a completed StreamFolk session when Twitch reports the channel
+offline.
+
+It locks chat, creates attendance and performance summaries, calculates true
+previous-stream retention, saves a local report, optionally sends that report
+through email-to-SMS, clears current attendance, and then allows the companion
+Archive Completed Stream C# sub-action to preserve the record.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: CLOSE TWITCH CHAT
+--------------------------------
+- Sends the configured closing message and waits five seconds.
+- Clears chat and enables emote-only, subscriber-only, and 120-second slow
+  mode.
+
+STEP 2: BUILD ATTENDANCE SUMMARY
+--------------------------------
+- Reads SeenUsers and AttendanceHistory.
+- Excludes configured broadcaster, bot, and service accounts.
+- Separates returning and new attendee rosters and stores
+  analytics.attendanceSummaryJson.
+
+STEP 3: BUILD PERFORMANCE SUMMARY
+--------------------------------
+- Calculates duration, current Twitch category, chat totals, unique chatters,
+  top chatter, subscriptions, follows, raids, Bits, messages per minute, and
+  true retention.
+- Stores the complete JSON in analytics.finalSummaryJson, including Category.
+- Writes `🎮 Category: <category>` directly after Duration in the saved report
+  consumed by the StreamFolk GUI.
+
+STEP 4: SAVE AND OPTIONALLY SEND
+--------------------------------
+- Writes a readable timestamped summary under Documents\StreamSummaries.
+- Calls Gmail email-to-SMS only when SendSmsEnabled is true and every
+  placeholder is configured.
+
+STEP 5: RESET ATTENDANCE AND FINISH
+--------------------------------
+- Clears SeenUsers and sends the configured final chat message.
+- The next C# sub-action archives analytics.finalSummaryJson into
+  analytics.streamHistory.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+StreamerUser / ExcludedUsers
+--------------------------------
+Required broadcaster and service-account configuration.
+
+SeenUsers / AttendanceHistory
+--------------------------------
+Current and long-term attendance sources.
+
+analytics.sessionStartLocal
+--------------------------------
+Start timestamp used for duration.
+
+analytics.currentCategory
+--------------------------------
+Current Twitch category captured by Track Stream Category and copied into the
+final summary/report.
+
+analytics.attendanceSummaryJson
+--------------------------------
+Final attendee counts and rosters.
+
+analytics.finalSummaryJson
+--------------------------------
+Complete final analytics snapshot consumed by Archive Completed Stream. v4.1
+includes the Category field for GUI/report consumers.
+
+analytics.subs / subsDetailed / follows / raids / bits / chatMessagesByUser
+--------------------------------
+Current-stream analytics sources.
+
+SendSmsEnabled / SenderGmailAddress / GoogleAppPassword / SmsGatewayAddress
+--------------------------------
+Optional private email-to-SMS settings; disabled and blank in the template.
+
+==============================================================================
+📱 EMAIL-TO-SMS SETUP & CARRIER STATUS
+==============================================================================
+WHAT THE GOOGLE APP PASSWORD DOES
+--------------------------------
+The Google App Password does not activate a carrier gateway. It lets this
+Streamer.bot C# template authenticate with Gmail SMTP because the current SMTP
+implementation does not use Google OAuth or Sign in with Google.
+
+- Use a dedicated Google account whenever possible.
+- Do not use the normal Google Account password in the script.
+
+CREATE A GOOGLE APP PASSWORD
+--------------------------------
+- Turn on 2-Step Verification for the Google account that will send the
+  message.
+- Open https://myaccount.google.com/apppasswords and sign in again if
+  requested.
+- Create an App Password named "StreamFolk" and copy the 16-character value
+  when Google shows it.
+- Paste that value into GoogleAppPassword and put the same Gmail address into
+  SenderGmailAddress.
+- After every placeholder is replaced, change SendSmsEnabled from false to
+  true and compile the C# sub-action.
+- The App Password option may be unavailable for work or school accounts,
+  Advanced Protection accounts, or accounts whose 2-Step Verification uses
+  only security keys.
+- Official instructions: https://support.google.com/accounts/answer/185833
+
+VERIFIED CARRIER STATUS - AUGUST 13, 2026
+--------------------------------
+- Google Fi: Supported at 10digitnumber@msg.fi.google.com when Messages by
+  Google is the default messaging app. Official help:
+  https://support.google.com/fi/answer/6356597
+- T-Mobile: Documented at 10digitnumber@tmomail.net. Use plain-text email;
+  HTML is not supported. Official support:
+  https://www.t-mobile.com/support/devices/not-sold-by-t-mobile/byod-t-mobile-data-and-apn-settings
+- Verizon: The legacy 10digitnumber@vtext.com and @vzwpix.com service is being
+  shut down. Verizon expects completion by March 31, 2027, and warns that
+  delivery may stop earlier. Official notice:
+  https://www.verizon.com/support/vtext-vzwpix-shutdown/
+- AT&T: Not supported. AT&T discontinued consumer email-to-text and
+  text-to-email on June 17, 2025. Official notice:
+  https://www.att.com/support/article/wireless/KM1061254/
+- Other carriers and MVNOs: Do not assume that an old gateway list is current.
+  Confirm support with the carrier and send a manual test before enabling the
+  action.
+
+DELIVERY LIMITATIONS
+--------------------------------
+- Email-to-SMS is a legacy carrier bridge. Messages can be delayed, split,
+  truncated, filtered as spam, or dropped without a delivery receipt.
+- Carrier availability can change after this release. Recheck official carrier
+  documentation when delivery stops.
+
+==============================================================================
+🔐 DATA-THEFT & CREDENTIAL WARNING
+==============================================================================
+PLAINTEXT CREDENTIAL RISK
+--------------------------------
+After configuration, the Gmail address, phone-number gateway, and Google App
+Password are stored as readable text inside Streamer.bot. They are also copied
+into Streamer.bot backups and any later .sb export containing the action.
+
+- Anyone who obtains that configured code may be able to send mail as the
+  Gmail account and may learn the destination phone number.
+- Never upload, publish, paste, or privately send a configured export without
+  removing all three values first.
+- Do not display the configured C# code during a stream, recording,
+  screenshot, or support session.
+
+UNTRUSTED CODE WARNING
+--------------------------------
+A modified version of this action could silently send the credential,
+messages, local files, or analytics to another address. Import Streamer.bot
+actions only from sources you trust and review credential-handling code before
+compiling it.
+
+- Confirm that mail.To.Add contains only the intended SmsGatewayAddress.
+- Confirm there are no unknown webhooks, upload calls, extra recipients, or
+  credential logging statements.
+
+SAFER ACCOUNT PRACTICES
+--------------------------------
+- Use a dedicated Gmail account with no personal mail, contacts, Drive files,
+  or recovery information stored in it.
+- Send only non-sensitive text. Email-to-SMS is not end-to-end encrypted and
+  carrier systems may store or filter the content.
+- If an App Password or configured export is exposed, revoke the App Password
+  immediately at https://myaccount.google.com/apppasswords and create a
+  replacement only if the feature is still needed.
+
+PUBLIC TEMPLATE SAFETY
+--------------------------------
+This v4.1 public template contains placeholders only. Sending is disabled by
+default, and the script refuses to send while a YOUR_ placeholder remains.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REQUIRED CHANNEL SETUP
+--------------------------------
+- Replace StreamerUser "streamername" and review ExcludedUsers.
+- Customize the two Twitch closing messages.
+
+CHAT LOCKDOWN
+--------------------------------
+- Remove or change clear-chat, emote-only, subscriber-only, or slow-mode calls
+  when the channel uses a different offline policy.
+
+SMS SUMMARY
+--------------------------------
+- Leave SendSmsEnabled false to save reports locally without any Gmail
+  credential.
+- If enabled, use a dedicated account and follow every security instruction
+  above.
+
+SUB-ACTION ORDER
+--------------------------------
+- Keep Archive Completed Stream immediately after this C# sub-action.
+- Do not place the archive first because analytics.finalSummaryJson must
+  already exist.
+
+ACTION STATE
+--------------------------------
+- The action imports disabled. Enable it only after configuration,
+  compilation, and a backup.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+END PROTOCOLS DO NOT RUN
+--------------------------------
+- Enable the action and confirm the Twitch Stream Offline trigger is attached.
+
+DURATION IS WRONG
+--------------------------------
+- Confirm Stream Start wrote analytics.sessionStartLocal in local ISO format.
+
+RETENTION LOOKS WRONG
+--------------------------------
+- Retention compares the immediately previous tracked stream roster with the
+  current roster.
+- Confirm AttendanceHistory contains parseable dates and excluded accounts are
+  consistent.
+
+SUMMARY SAVES BUT HISTORY DOES NOT
+--------------------------------
+- Compile the Archive Completed Stream sub-action and keep it second.
+- Inspect analytics.finalSummaryJson for valid JSON.
+
+SMS FAILS
+--------------------------------
+- Use the carrier and Google troubleshooting above.
+- Local summary saving remains independent of SMS failure.
+
+==============================================================================
+*/

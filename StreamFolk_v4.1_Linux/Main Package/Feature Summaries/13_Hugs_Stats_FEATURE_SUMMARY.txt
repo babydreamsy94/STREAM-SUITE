@@ -1,0 +1,76 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+HUGS STATS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Shows how many hugs a checked-in viewer has given and received, defaulting to
+the command invoker when no target is supplied.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ TARGET
+--------------------------------
+- Parses an optional Twitch login after !hstats.
+- Defaults to the invoker.
+
+STEP 2: VERIFY ATTENDANCE
+--------------------------------
+- Requires the target to exist in SeenUsers.
+
+STEP 3: READ HUG TOTALS
+--------------------------------
+- Loads target_given and target_received from HugStats.
+
+STEP 4: SEND RESPONSE
+--------------------------------
+- Posts both lifetime counts to Twitch chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+HugStats
+--------------------------------
+Lifetime hug-given and hug-received totals.
+
+SeenUsers
+--------------------------------
+Current-stream eligibility dictionary.
+
+rawInput
+--------------------------------
+Optional target after !hstats.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND SETUP
+--------------------------------
+- Review and enable the imported !hstats command.
+- Keep Starts With mode for optional target lookup.
+
+RESPONSE TEXT
+--------------------------------
+- Edit the final CPH.SendMessage line to change tone or emojis.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+TARGET HAS NO STATS
+--------------------------------
+- Confirm the target checked in this stream.
+- Inspect HugStats for normalized _given and _received keys.
+
+TARGET PARSING FAILS
+--------------------------------
+- Use a single Twitch login without @ or extra text.
+
+==============================================================================
+*/

@@ -1,0 +1,19 @@
+STREAMFOLK v4.1 - LINUX / WINE NOTES
+=====================================
+
+Streamer.bot's Linux path uses Wine and is considered experimental by Streamer.bot.
+Recommended Streamer.bot v1.0.7 dependencies include Wine and winetricks dotnet48.
+Official guide: https://docs.streamer.bot/get-started/installation/linux
+
+IMPORT
+------
+Use Main Package/StreamFolk_4.1_Main_Package_Linux.sb.
+This Linux import changes the embedded .NET Framework references from release-machine relative Windows paths to absolute Wine C: paths, for example:
+C:\windows\Microsoft.NET\Framework64\v4.0.30319\mscorlib.dll
+
+After import, open every Execute C# Code sub-action and compile it. If your Wine prefix exposes framework assemblies differently, use Streamer.bot's Find Refs function in that same Wine installation and recompile.
+
+
+REPORT LOCATION
+---------------
+The Stream End script uses Environment.SpecialFolder.MyDocuments. In a normal Wine prefix this is commonly mapped to your Linux Documents folder.

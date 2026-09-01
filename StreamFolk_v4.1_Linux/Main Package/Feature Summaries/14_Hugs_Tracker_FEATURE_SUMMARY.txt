@@ -1,0 +1,90 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+HUGS TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Runs !hug interactions between current attendees and stores lifetime counts
+for both the giver and receiver.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ PARTICIPANTS
+--------------------------------
+- Reads the invoker and optional target.
+- Normalizes both Twitch logins.
+
+STEP 2: VERIFY ATTENDANCE
+--------------------------------
+- Requires the invoker and named target to exist in SeenUsers.
+
+STEP 3: HANDLE SELF-HUG
+--------------------------------
+- Uses the configured self-hug response when no target is supplied or the user
+  names themselves.
+- Does not increment giver or receiver totals for the failed self-hug.
+
+STEP 4: STORE VALID HUG
+--------------------------------
+- Increments invoker_given and target_received once.
+- Saves HugStats and sends one random hug phrase.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+HugStats
+--------------------------------
+Lifetime dictionary containing _given and _received counts.
+
+SeenUsers
+--------------------------------
+Current-stream attendance gate.
+
+rawInput
+--------------------------------
+Optional target after !hug.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+PHRASE POOL
+--------------------------------
+- Edit hugPhrases and selfHugError while retaining invoker and target
+  placeholders.
+
+COMMAND SETUP
+--------------------------------
+- Review and enable the imported !hug command.
+- Use Starts With mode to allow a target.
+
+COUNTING POLICY
+--------------------------------
+- Self-hugs currently do not add stats. Change both logic and summary
+  documentation if that policy changes.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+HUG IS REJECTED
+--------------------------------
+- Both users must be recorded in SeenUsers.
+- Confirm Attendance Check ran for the target.
+
+ONLY ONE SIDE INCREASES
+--------------------------------
+- Keep the _given and _received keys unchanged.
+- Inspect HugStats for valid JSON.
+
+MESSAGE REPEATS
+--------------------------------
+Random selection can naturally choose the same phrase on consecutive uses.
+
+==============================================================================
+*/

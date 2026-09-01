@@ -1,0 +1,101 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+DIAPER CHECK - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Provides the optional !check interaction that generates randomized “soggy” and
+“stinky” percentages for the invoker or a named attendee.
+
+It remains separate from the Main Package and imports disabled so channels can
+choose whether this theme fits their community.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ USERS
+--------------------------------
+- Reads the triggering user and an optional target from rawInput.
+- Defaults to a self-check when no target is supplied.
+
+STEP 2: VERIFY TARGET ATTENDANCE
+--------------------------------
+- Loads SeenUsers.
+- Rejects a named target who has not checked in this stream.
+
+STEP 3: ROLL VALUES
+--------------------------------
+- Generates independent values from 0 through 100 for soggy and stinky.
+
+STEP 4: CHOOSE PHRASE
+--------------------------------
+- Selects a playful message based on the value ranges, including a special
+  100/100 response.
+
+STEP 5: SEND RESULT
+--------------------------------
+- Posts the self or targeted result to Twitch chat.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+Main Package attendance dictionary used to validate a named target.
+
+rawInput
+--------------------------------
+Optional Twitch target after !check.
+
+user
+--------------------------------
+Command invoker.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+OPTIONAL INSTALLATION
+--------------------------------
+- Import this .sb only after the Main Package when the command is wanted.
+- The action and !check command import disabled.
+
+COMMAND SETUP
+--------------------------------
+- Review the !check command’s permissions and cooldown before enabling it.
+- Use Starts With mode to allow an optional target.
+
+PHRASES AND THRESHOLDS
+--------------------------------
+- Edit GetPlayfulMessage to change wording or percentage ranges.
+
+ATTENDANCE DEPENDENCY
+--------------------------------
+- A named target must exist in SeenUsers; self-checks work without a separate
+  target.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+TARGET IS REJECTED
+--------------------------------
+- Confirm the target checked in through the Main Package Attendance Check
+  action.
+- Use the target’s Twitch login without extra text.
+
+ACTION DOES NOT RUN
+--------------------------------
+- Enable both the optional action and imported !check command.
+
+COMMAND IS NOT APPROPRIATE FOR THE CHANNEL
+--------------------------------
+Leave the optional package disabled or do not import it; no Main Package
+feature depends on it.
+
+==============================================================================
+*/

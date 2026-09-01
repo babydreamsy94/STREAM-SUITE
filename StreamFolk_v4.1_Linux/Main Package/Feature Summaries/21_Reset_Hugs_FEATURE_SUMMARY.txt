@@ -1,0 +1,70 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+RESET HUGS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Lets only the configured broadcaster erase all lifetime hug-giver and
+hug-receiver totals through !resethugs.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY AND AUTHORIZE
+--------------------------------
+- Normalizes the command user and compares it with streamername.
+
+STEP 2: CLEAR DATA
+--------------------------------
+- Replaces HugStats with an empty JSON dictionary.
+
+STEP 3: CONFIRM RESET
+--------------------------------
+- Posts a chat confirmation.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+HugStats
+--------------------------------
+Lifetime hug statistics that are cleared.
+
+streamername
+--------------------------------
+Required lowercase broadcaster-login placeholder.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REQUIRED PLACEHOLDER
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login.
+
+COMMAND SECURITY
+--------------------------------
+- Review !resethugs permissions and enable it only after configuration.
+
+BACKUP
+--------------------------------
+- Back up Streamer.bot before deleting long-term community statistics.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BROADCASTER IS DENIED
+--------------------------------
+- Match the lowercase login and omit @.
+
+LEADERBOARD STILL SHOWS DATA
+--------------------------------
+- Confirm Hugs Leaderboard reads HugStats and that no duplicate hug variable
+  exists.
+
+==============================================================================
+*/

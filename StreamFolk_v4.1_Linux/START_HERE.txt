@@ -1,0 +1,36 @@
+STREAMFOLK v4.1 - START HERE
+==============================
+
+1. USE THE PACKAGE FOR YOUR PLATFORM
+   - Windows: StreamFolk_4.1_Main_Package_Windows.sb
+   - Linux/Wine: StreamFolk_4.1_Main_Package_Linux.sb
+
+2. BACK UP FIRST
+   Export your current Streamer.bot group and preserve long-term StreamFolk globals before importing v4.1.
+
+3. IMPORT THE MAIN PACKAGE
+   Open Streamer.bot > Import, then select the .sb file in Main Package.
+   Review the preview before importing. Do not use an update workflow that silently overwrites customized actions.
+
+4. REVIEW CONFIGURATION
+   Replace streamer/bot placeholders, reconnect your own Channel Point Rewards, review report paths, and configure private messaging only if you intentionally use it.
+
+5. COMPILE C#
+   Open every Execute C# Code sub-action and compile it. On Linux/Wine, read PLATFORM_LINUX.txt first.
+
+6. TEST IN THIS ORDER
+   a. Stream Start Protocols
+   b. Track Stream Category
+   c. Attendance and event trackers
+   d. Community commands
+   e. Stream End Protocols
+   f. Confirm the saved report contains a Category line
+   g. Confirm analytics.finalSummaryJson contains Category
+
+7. CATEGORY REPORT CONTRACT
+   Stream End Protocols now writes:
+   🎮 Category: <current Twitch category>
+   immediately after the Duration line in every saved Stream Performance Report.
+
+8. OPTIONAL PACKAGE
+   The Diaper Check package remains separate and is not required by the main package.

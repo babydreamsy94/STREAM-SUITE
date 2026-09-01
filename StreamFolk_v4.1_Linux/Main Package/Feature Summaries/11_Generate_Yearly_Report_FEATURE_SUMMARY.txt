@@ -1,0 +1,121 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+GENERATE YEARLY REPORT - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Builds a calendar-year performance report from permanent history, adds a
+month-by-month breakdown, compares it with the previous year, and saves the
+result.
+
+True yearly retention measures how many unique attendees from the previous
+calendar year returned during the selected year.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: LOAD HISTORY
+--------------------------------
+- Reads analytics.streamHistory and safely migrates legacy history only when
+  required.
+
+STEP 2: CHOOSE YEAR
+--------------------------------
+- Accepts current, previous, YYYY, YYYY-MM, or YYYY-MM-DD through year, date,
+  reportYear, or rawInput.
+- Defaults to the current local calendar year.
+
+STEP 3: BUILD YEARLY TOTALS
+--------------------------------
+- Collects selected-year, previous-year, and earlier baseline records.
+- Calculates duration, attendance, chat, support, highlights, and exact yearly
+  audience overlap.
+
+STEP 4: CREATE MONTHLY BREAKDOWN
+--------------------------------
+- Groups archived streams by calendar month.
+- Shows only months that contain archived streams.
+
+STEP 5: SAVE AND PUBLISH
+--------------------------------
+- Writes Documents\StreamSummaries\Yearly
+  Reports\StreamFolk_Yearly_Report_YYYY.txt.
+- Stores the report text, year, range, and path in persistent globals.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.streamHistory
+--------------------------------
+Permanent archived stream records.
+
+analytics.monthlyHistory
+--------------------------------
+Legacy migration source only.
+
+analytics.latestYearlyReport
+--------------------------------
+Latest yearly report text.
+
+analytics.latestYearlyReportYear
+--------------------------------
+Selected four-digit year.
+
+analytics.latestYearlyReportStart / End
+--------------------------------
+Selected January 1 through December 31 range.
+
+analytics.latestYearlyReportPath
+--------------------------------
+Full saved report path.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND INPUT
+--------------------------------
+- The imported command is !yreport.
+- Examples: !yreport previous, !yreport 2026, or !yreport 2026-07.
+- Review permissions before enabling the command.
+
+REPORT APPEARANCE
+--------------------------------
+- Edit BuildReport and AppendMonthlyBreakdown for labels, emojis, and order.
+
+OUTPUT LOCATION
+--------------------------------
+- Edit SaveReport only when a different path is required.
+
+TAGLINE
+--------------------------------
+- The public template uses the StreamFolk community tagline.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+NO REPORT IS CREATED
+--------------------------------
+- Confirm the requested year contains archived stream records.
+- Check rawInput for a valid year token.
+
+RETENTION SHOWS N/A
+--------------------------------
+- The immediately previous year needs a complete attendee roster.
+- A first tracked year correctly reports N/A instead of 0%.
+
+MONTH IS MISSING
+--------------------------------
+- Only months containing archived streams appear in the breakdown.
+
+REPORT IS OVERWRITTEN
+--------------------------------
+Regenerating the same year intentionally updates the same output file.
+
+==============================================================================
+*/

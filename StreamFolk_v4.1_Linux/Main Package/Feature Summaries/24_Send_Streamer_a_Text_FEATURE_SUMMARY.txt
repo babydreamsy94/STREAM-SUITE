@@ -1,0 +1,228 @@
+/* 
+==============================================================================
+STREAMFOLK
+==============================================================================
+
+==============================================================================
+SEND STREAMER A TEXT - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Forwards a reward user’s plain-text message to the streamer through a carrier
+email-to-SMS gateway using Gmail SMTP.
+
+The v4.1 public template is disabled, contains no private values, rejects
+unfinished placeholders, limits message length, removes line breaks, logs
+failures without exposing credentials, and optionally plays a local sound
+after success.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: SAFETY GATE
+--------------------------------
+- Stops while SmsEnabled is false.
+- Stops when the Gmail address, App Password, or carrier gateway still
+  contains a YOUR_ placeholder.
+
+STEP 2: PREPARE VIEWER TEXT
+--------------------------------
+- Reads rawInput and silently exits when it is blank.
+- Removes line breaks, limits the text to 500 characters, and appends the
+  redeemer name.
+
+STEP 3: SEND THROUGH GMAIL
+--------------------------------
+- Connects to smtp.gmail.com on port 587 with TLS.
+- Sends a plain-text email without a subject to SmsGatewayAddress.
+
+STEP 4: OPTIONAL LOCAL SOUND
+--------------------------------
+- Waits four seconds and plays OptionalSoundPath only when that path is
+  configured and exists.
+
+STEP 5: HANDLE FAILURE
+--------------------------------
+- Logs the SMTP error message without printing the Gmail address, phone
+  gateway, or App Password.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SmsEnabled
+--------------------------------
+Master safety switch. It is false in the public template.
+
+SenderGmailAddress
+--------------------------------
+Gmail account used only to send the gateway email.
+
+GoogleAppPassword
+--------------------------------
+Google-generated 16-character App Password, never the normal account password.
+
+SmsGatewayAddress
+--------------------------------
+Carrier address containing the destination phone number and gateway domain.
+
+OptionalSoundPath
+--------------------------------
+Optional local audio file; blank disables the sound.
+
+rawInput / user
+--------------------------------
+Reward message and sender name supplied by Streamer.bot.
+
+==============================================================================
+📱 EMAIL-TO-SMS SETUP & CARRIER STATUS
+==============================================================================
+WHAT THE GOOGLE APP PASSWORD DOES
+--------------------------------
+The Google App Password does not activate a carrier gateway. It lets this
+Streamer.bot C# template authenticate with Gmail SMTP because the current SMTP
+implementation does not use Google OAuth or Sign in with Google.
+
+- Use a dedicated Google account whenever possible.
+- Do not use the normal Google Account password in the script.
+
+CREATE A GOOGLE APP PASSWORD
+--------------------------------
+- Turn on 2-Step Verification for the Google account that will send the
+  message.
+- Open https://myaccount.google.com/apppasswords and sign in again if
+  requested.
+- Create an App Password named "StreamFolk" and copy the 16-character value
+  when Google shows it.
+- Paste that value into GoogleAppPassword and put the same Gmail address into
+  SenderGmailAddress.
+- After every placeholder is replaced, change SmsEnabled from false to true
+  and compile the C# sub-action.
+- The App Password option may be unavailable for work or school accounts,
+  Advanced Protection accounts, or accounts whose 2-Step Verification uses
+  only security keys.
+- Official instructions: https://support.google.com/accounts/answer/185833
+
+VERIFIED CARRIER STATUS - AUGUST 13, 2026
+--------------------------------
+- Google Fi: Supported at 10digitnumber@msg.fi.google.com when Messages by
+  Google is the default messaging app. Official help:
+  https://support.google.com/fi/answer/6356597
+- T-Mobile: Documented at 10digitnumber@tmomail.net. Use plain-text email;
+  HTML is not supported. Official support:
+  https://www.t-mobile.com/support/devices/not-sold-by-t-mobile/byod-t-mobile-data-and-apn-settings
+- Verizon: The legacy 10digitnumber@vtext.com and @vzwpix.com service is being
+  shut down. Verizon expects completion by March 31, 2027, and warns that
+  delivery may stop earlier. Official notice:
+  https://www.verizon.com/support/vtext-vzwpix-shutdown/
+- AT&T: Not supported. AT&T discontinued consumer email-to-text and
+  text-to-email on June 17, 2025. Official notice:
+  https://www.att.com/support/article/wireless/KM1061254/
+- Other carriers and MVNOs: Do not assume that an old gateway list is current.
+  Confirm support with the carrier and send a manual test before enabling the
+  action.
+
+DELIVERY LIMITATIONS
+--------------------------------
+- Email-to-SMS is a legacy carrier bridge. Messages can be delayed, split,
+  truncated, filtered as spam, or dropped without a delivery receipt.
+- Carrier availability can change after this release. Recheck official carrier
+  documentation when delivery stops.
+
+==============================================================================
+🔐 DATA-THEFT & CREDENTIAL WARNING
+==============================================================================
+PLAINTEXT CREDENTIAL RISK
+--------------------------------
+After configuration, the Gmail address, phone-number gateway, and Google App
+Password are stored as readable text inside Streamer.bot. They are also copied
+into Streamer.bot backups and any later .sb export containing the action.
+
+- Anyone who obtains that configured code may be able to send mail as the
+  Gmail account and may learn the destination phone number.
+- Never upload, publish, paste, or privately send a configured export without
+  removing all three values first.
+- Do not display the configured C# code during a stream, recording,
+  screenshot, or support session.
+
+UNTRUSTED CODE WARNING
+--------------------------------
+A modified version of this action could silently send the credential,
+messages, local files, or analytics to another address. Import Streamer.bot
+actions only from sources you trust and review credential-handling code before
+compiling it.
+
+- Confirm that mail.To.Add contains only the intended SmsGatewayAddress.
+- Confirm there are no unknown webhooks, upload calls, extra recipients, or
+  credential logging statements.
+
+SAFER ACCOUNT PRACTICES
+--------------------------------
+- Use a dedicated Gmail account with no personal mail, contacts, Drive files,
+  or recovery information stored in it.
+- Send only non-sensitive text. Email-to-SMS is not end-to-end encrypted and
+  carrier systems may store or filter the content.
+- If an App Password or configured export is exposed, revoke the App Password
+  immediately at https://myaccount.google.com/apppasswords and create a
+  replacement only if the feature is still needed.
+
+PUBLIC TEMPLATE SAFETY
+--------------------------------
+This v4.1 public template contains placeholders only. Sending is disabled by
+default, and the script refuses to send while a YOUR_ placeholder remains.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REQUIRED SETUP
+--------------------------------
+- Read both security sections before entering any value.
+- Replace all three YOUR_ placeholders, compile, and run a manual test before
+  changing SmsEnabled to true.
+
+REWARD TRIGGER
+--------------------------------
+- The creator reward ID was removed from the public import.
+- Create the channel’s own text reward and attach it to this action.
+- Configure reward cost, cooldown, per-user limits, and moderation carefully
+  to prevent spam.
+
+OPTIONAL SOUND
+--------------------------------
+- Leave OptionalSoundPath blank to keep the action silent.
+- Use a full local path only in the private installation; remove it before
+  exporting.
+
+ACTION STATE
+--------------------------------
+- The entire action imports disabled. Enable it only after configuration and
+  testing.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+APP PASSWORD OPTION IS MISSING
+--------------------------------
+- Enable Google 2-Step Verification first.
+- The option may be blocked by an organization, Advanced Protection, or
+  security-key-only setup.
+
+SMTP AUTHENTICATION FAILS
+--------------------------------
+- Use the App Password rather than the normal password.
+- Confirm SenderGmailAddress belongs to the account that generated it.
+
+EMAIL SENDS BUT NO TEXT ARRIVES
+--------------------------------
+- Confirm the exact carrier gateway and 10-digit number.
+- Check carrier spam filtering and current shutdown status.
+- Send a short plain-text manual email to the gateway.
+
+ACTION ONLY LOGS DISABLED
+--------------------------------
+- Set SmsEnabled to true only after every placeholder is replaced and the
+  action is compiled.
+
+==============================================================================
+*/
