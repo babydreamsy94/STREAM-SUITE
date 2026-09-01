@@ -1,6 +1,6 @@
 <img width="1920" height="1080" alt="StreamFolk00086400" src="https://github.com/user-attachments/assets/2def0f20-cba3-4a39-8781-887a7eb66a3b" />
 
-# STREAMFOLK [formerly known as Stream Suite)
+# STREAMFOLK [formerly known as Stream Suite]
 
 > **Built By Streamers. Powered by Community.**
 >
