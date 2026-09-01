@@ -1,0 +1,86 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+FOLLOW TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Records each unique Twitch follow received during the current stream for the
+end summary and historical reports.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY FOLLOWER
+--------------------------------
+- Reads and normalizes the follower login.
+- Skips blank and excluded accounts.
+
+STEP 2: PREVENT DUPLICATE EVENT COUNTS
+--------------------------------
+- Loads analytics.follows.
+- Skips a follower already recorded this stream instead of incrementing twice.
+
+STEP 3: SAVE TOTALS
+--------------------------------
+- Stores the follower with a value of one.
+- Increments analytics.totalFollows and logs the result.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.follows
+--------------------------------
+JSON dictionary of followers recorded during the stream.
+
+analytics.totalFollows
+--------------------------------
+Integer number of unique tracked follow events this stream.
+
+ExcludedUsers
+--------------------------------
+Accounts ignored by follow analytics.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase.
+- Replace "botname" with the custom bot login, or remove it when no separate
+  bot account is used.
+- Keep, remove, or add common service accounts so automated accounts are not
+  included in analytics.
+
+TRIGGER SETUP
+--------------------------------
+- Keep the Twitch Follow trigger attached.
+- Use only one active Follow Tracker action.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+FOLLOW IS NOT RECORDED
+--------------------------------
+- Confirm Twitch follow events are reaching Streamer.bot.
+- Check the log for missing or excluded usernames.
+
+REFOLLOW DOES NOT ADD ANOTHER
+--------------------------------
+This is intentional. A user is counted once per stream to protect against
+duplicate event replay.
+
+REPORT TOTAL DIFFERS
+--------------------------------
+- Confirm Stream Start reset analytics.follows and analytics.totalFollows
+  before the broadcast.
+
+==============================================================================
+*/

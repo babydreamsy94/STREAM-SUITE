@@ -1,0 +1,129 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+STREAM START PROTOCOLS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Initializes a new StreamFolk session when Twitch reports the channel online.
+
+It seeds the broadcaster entry, resets current-stream analytics, saves the
+local session start time, unlocks chat modes, and pins the attendance
+explanation.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: INITIALIZE BROADCASTER
+--------------------------------
+- Normalizes StreamerUser and adds it to SeenUsers when absent.
+- Adds today to the broadcaster AttendanceHistory entry when needed; Stream
+  End excludes configured service accounts from analytics.
+
+STEP 2: RESET SESSION ANALYTICS
+--------------------------------
+- Clears current chat, subscription, follow, raid, Bits, and
+  attendance-summary values.
+- Also clears analytics.subsDetailed so prior subscription labels cannot bleed
+  into the new stream.
+
+STEP 3: START SESSION CLOCK
+--------------------------------
+- Stores local ISO-8601 time in analytics.sessionStartLocal.
+
+STEP 4: UNLOCK TWITCH CHAT
+--------------------------------
+- Sends the configured opening message, waits three seconds, and turns off
+  emote-only, subscriber-only, and slow mode.
+
+STEP 5: PIN ATTENDANCE MESSAGE
+--------------------------------
+- Pins the configured StreamFolk attendance explanation in Twitch chat.
+- Uses the Streamer.bot v1.0.7 nullable-duration API with null so the pinned
+  message remains active until the stream ends.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+StreamerUser
+--------------------------------
+Required lowercase broadcaster-login placeholder.
+
+SeenUsers / AttendanceHistory
+--------------------------------
+Current and long-term attendance dictionaries.
+
+analytics.sessionStartLocal
+--------------------------------
+Local stream start timestamp used for duration.
+
+CURRENT-STREAM ANALYTICS
+--------------------------------
+Chat, subscription, follow, raid, Bits, and generated attendance-summary
+variables reset at stream start.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REQUIRED PLACEHOLDERS
+--------------------------------
+- Replace StreamerUser "streamername" with the lowercase Twitch login.
+- Update ExcludedUsers with the broadcaster and bot accounts.
+
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase.
+- Replace "botname" with the custom bot login, or remove it when no separate
+  bot account is used.
+- Keep, remove, or add common service accounts so automated accounts are not
+  included in analytics.
+
+PINNED MESSAGE
+--------------------------------
+- Edit the CPH.TwitchSendAndPinMessage text to match the channel reward name
+  and tone.
+- Keep the message within Twitch’s pinned-message limits.
+
+CHAT MODES
+--------------------------------
+- Remove any Twitch mode call that the channel does not want automatically
+  changed.
+
+ACTION STATE
+--------------------------------
+- This action imports disabled.
+- Compile and review it, then enable the Stream Online trigger only when
+  configuration is complete.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+STREAM START DOES NOT RUN
+--------------------------------
+- Enable the action and confirm the Twitch Stream Online trigger is attached.
+
+DUMMY STREAMERNAME APPEARS
+--------------------------------
+- Replace StreamerUser before enabling the action and remove any test entry
+  from SeenUsers or AttendanceHistory.
+
+OLD TOTALS APPEAR
+--------------------------------
+- Confirm all reset lines run and no later action restores old globals.
+
+PIN FAILS
+--------------------------------
+- Confirm the connected Twitch account has permission to pin messages and
+  inspect Streamer.bot logs.
+- Keep CPH.TwitchUpdatePinnedMessageDuration(null); intact. Streamer.bot v1.0.7
+  requires the nullable duration argument; a no-argument call will not compile.
+
+==============================================================================
+*/

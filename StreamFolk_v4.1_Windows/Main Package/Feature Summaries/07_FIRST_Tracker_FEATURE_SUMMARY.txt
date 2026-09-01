@@ -1,0 +1,102 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+FIRST! TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Awards one daily FIRST! winner, tracks each user’s lifetime wins and
+consecutive winning streak, and celebrates configured milestones.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY CLAIMANT
+--------------------------------
+- Reads and normalizes the reward user.
+- Loads FirstStats and FirstDates.
+
+STEP 2: ENFORCE DAILY WINNER
+--------------------------------
+- Checks the date-specific winner key.
+- Rejects later claimants with a random playful response.
+- Allows the recorded winner to retrigger without creating another win.
+
+STEP 3: UPDATE WIN TOTAL
+--------------------------------
+- Records the first valid user as today’s winner.
+- Increments that user’s lifetime total.
+
+STEP 4: CALCULATE STREAK
+--------------------------------
+- Continues the streak when the same user’s last claim was yesterday.
+- Starts a fresh streak after missed days or a reset.
+- Preserves the same streak for a repeated same-day winner event.
+
+STEP 5: CELEBRATE AND SAVE
+--------------------------------
+- Uses special messages at 5, 10, 21, 25, 50, 100, and 173 consecutive wins.
+- Resets the streak after the 173 milestone sequence.
+- Saves FirstStats and FirstDates.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+FirstStats
+--------------------------------
+Dictionary containing per-user lifetime totals and streak values.
+
+FirstDates
+--------------------------------
+Dictionary containing each user’s last claim plus the date-specific winner.
+
+user
+--------------------------------
+Reward claimant.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+REWARD TRIGGER
+--------------------------------
+- The creator reward ID was intentionally removed.
+- Create or select the channel’s FIRST! reward, then add its trigger to this
+  action.
+
+MILESTONES
+--------------------------------
+- Edit milestone numbers or messages carefully.
+- The 173 milestone intentionally sends two messages, waits five seconds, and
+  resets the streak.
+
+COMPANION MODULES
+--------------------------------
+- Keep FirstStats and FirstDates synchronized with FIRST! Stats and Reset
+  FIRST!.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+EVERYONE CAN WIN THE SAME DAY
+--------------------------------
+- Inspect FirstDates for a valid today_winner key.
+- Make sure no reset runs between claims.
+
+STREAK NEVER INCREASES
+--------------------------------
+- Confirm the system date and timezone are correct.
+- Inspect each user’s last claim date in FirstDates.
+
+ACTION NEVER FIRES
+--------------------------------
+- Add the channel’s reward trigger after import and enable the action.
+
+==============================================================================
+*/

@@ -1,0 +1,88 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+HUGS LEADERBOARD - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Displays the top three eligible hug givers or receivers from lifetime HugStats
+while limiting the board to users present in SeenUsers for the current stream.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ MODE
+--------------------------------
+- Parses givers or receivers after !hboard.
+- Shows usage help for a missing or invalid mode.
+
+STEP 2: LOAD DATA
+--------------------------------
+- Reads HugStats and SeenUsers.
+
+STEP 3: BUILD ELIGIBLE LISTS
+--------------------------------
+- Separates _given and _received keys.
+- Keeps only users currently present in SeenUsers.
+
+STEP 4: RANK AND SEND
+--------------------------------
+- Sorts descending, takes the top three, and posts the selected board.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+HugStats
+--------------------------------
+Dictionary using username_given and username_received keys.
+
+SeenUsers
+--------------------------------
+Current-session attendance filter.
+
+rawInput
+--------------------------------
+Expected mode: givers or receivers.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+COMMAND SETUP
+--------------------------------
+- The imported command is !hboard.
+- Use !hboard givers or !hboard receivers.
+- Review and enable the command after import.
+
+BOARD SIZE
+--------------------------------
+- Change Take(3) and the displayed label together to show a different number.
+
+ATTENDANCE FILTER
+--------------------------------
+- Remove the SeenUsers filter only if absent users should appear.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+BOARD SAYS NO HUGS
+--------------------------------
+- Confirm Hugs Tracker has written HugStats.
+- Only currently checked-in users qualify for this board.
+
+MODE IS REJECTED
+--------------------------------
+- Use exactly givers or receivers after the command.
+
+COUNTS LOOK WRONG
+--------------------------------
+- Keep _given and _received suffixes consistent across all hug modules.
+
+==============================================================================
+*/

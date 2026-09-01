@@ -1,0 +1,99 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+RESET VARIABLES - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Safely clears current-stream analytics without touching long-term attendance
+history, archived stream history, FIRST!, hugs, or pats.
+
+The v4.1 public version contains no private Stream Deck button ID and also
+clears detailed subscription labels plus the generated current-session
+attendance snapshot.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: RESET CURRENT ATTENDANCE
+--------------------------------
+- Sets SeenUsers to an empty JSON dictionary.
+
+STEP 2: RESET ENGAGEMENT AND SUPPORT
+--------------------------------
+- Clears chat, subscription, detailed subscription, follow, Bits, and raid
+  variables.
+- Resets numeric stream totals to zero.
+
+STEP 3: RESET GENERATED SNAPSHOT
+--------------------------------
+- Clears analytics.attendanceSummaryJson.
+- Leaves analytics.finalSummaryJson intact unless the optional commented line
+  is enabled.
+
+STEP 4: CONFIRM SAFE RESET
+--------------------------------
+- Writes a log entry and sends the configured chat confirmation.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+CLEARED VALUES
+--------------------------------
+SeenUsers, analytics.chatMessagesByUser, analytics.chatTotalMessages,
+analytics.subs, analytics.subsDetailed, analytics.totalSubs,
+analytics.follows, analytics.totalFollows, analytics.bits,
+analytics.totalBits, analytics.raids, and analytics.attendanceSummaryJson.
+
+PRESERVED VALUES
+--------------------------------
+AttendanceHistory, analytics.streamHistory, analytics.lastStreamArchiveJson,
+FIRST!, hug, and pat lifetime data.
+
+analytics.finalSummaryJson
+--------------------------------
+Preserved by default; an optional commented line can clear it.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+MANUAL ACTION
+--------------------------------
+- This action imports without a trigger so it cannot run accidentally.
+- Add a protected Stream Deck or command trigger only after reviewing the
+  cleared-variable list.
+
+FINAL SUMMARY OPTION
+--------------------------------
+- Uncomment the finalSummaryJson line only when the last completed summary
+  should also be erased.
+
+CHAT CONFIRMATION
+--------------------------------
+- Remove CPH.SendMessage if a private silent reset is preferred.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+LONG-TERM HISTORY WAS CLEARED
+--------------------------------
+This script does not clear AttendanceHistory or streamHistory. Inspect other
+reset actions and backups.
+
+OLD SUB DETAILS REMAIN
+--------------------------------
+- Confirm analytics.subsDetailed appears in the installed v4.1 code.
+
+RAID TRACKER BREAKS
+--------------------------------
+- analytics.raids must reset to [] rather than {}.
+
+==============================================================================
+*/

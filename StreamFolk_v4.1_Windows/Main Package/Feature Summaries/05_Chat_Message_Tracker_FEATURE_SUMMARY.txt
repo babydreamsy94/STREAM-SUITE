@@ -1,0 +1,92 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+CHAT MESSAGE TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Counts current-stream Twitch messages by user and in total, providing the chat
+totals, top chatter, messages-per-minute, and report data used by Stream End.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY CHATTER
+--------------------------------
+- Reads userLogin first and falls back to other supported username arguments.
+- Normalizes the login and skips blank or excluded accounts.
+
+STEP 2: UPDATE USER COUNT
+--------------------------------
+- Loads analytics.chatMessagesByUser as a case-insensitive dictionary.
+- Adds one message to the triggering user.
+
+STEP 3: UPDATE STREAM COUNT
+--------------------------------
+- Adds one to analytics.chatTotalMessages.
+- Saves both values as persistent globals.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.chatMessagesByUser
+--------------------------------
+JSON dictionary mapping each chatter to their current-stream message count.
+
+analytics.chatTotalMessages
+--------------------------------
+Integer total of tracked current-stream messages.
+
+ExcludedUsers
+--------------------------------
+Accounts ignored by chat analytics.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase.
+- Replace "botname" with the custom bot login, or remove it when no separate
+  bot account is used.
+- Keep, remove, or add common service accounts so automated accounts are not
+  included in analytics.
+
+TRIGGER SETUP
+--------------------------------
+- Keep the Twitch Chat Message trigger attached.
+- Avoid attaching multiple copies or every message will be counted more than
+  once.
+
+COUNTING POLICY
+--------------------------------
+- Add moderation bots or relay accounts to ExcludedUsers when their messages
+  should not count.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+MESSAGES STAY AT ZERO
+--------------------------------
+- Confirm the Twitch Chat Message trigger is enabled.
+- Check the log for missing username arguments.
+
+TOTAL IS TOO HIGH
+--------------------------------
+- Look for duplicate Chat Message Tracker actions or triggers.
+- Add automated accounts to ExcludedUsers.
+
+TOP CHATTER LOOKS WRONG
+--------------------------------
+- Inspect analytics.chatMessagesByUser before Stream End clears SeenUsers.
+- Confirm another action is not overwriting the dictionary.
+
+==============================================================================
+*/

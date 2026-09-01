@@ -1,0 +1,127 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+ARCHIVE COMPLETED STREAM - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Reads analytics.finalSummaryJson after Stream End finishes and appends one
+normalized permanent record to analytics.streamHistory.
+
+It independently recalculates true previous-stream retention from exact
+attendee-roster overlap, skips duplicate archives, and protects existing
+history when JSON is invalid.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ FINAL SUMMARY
+--------------------------------
+- Loads and deserializes analytics.finalSummaryJson.
+- Stops without changing history when the summary is empty or invalid.
+
+STEP 2: LOAD OR MIGRATE HISTORY
+--------------------------------
+- Reads analytics.streamHistory.
+- When empty, copies valid legacy analytics.monthlyHistory without deleting
+  the legacy value.
+
+STEP 3: PREVENT DUPLICATES
+--------------------------------
+- Builds stable start and generation timestamps.
+- Skips a record matching an existing record ID, generated time, or stream
+  start time.
+
+STEP 4: BUILD ARCHIVED RECORD
+--------------------------------
+- Cleans returning and new rosters.
+- Adds date, month, Monday week start, category, title, duration, attendance,
+  chat, follows, subscription units, Bits, and raids.
+- Calculates true retention against the most recent earlier archived stream.
+
+STEP 5: SAVE HISTORY
+--------------------------------
+- Sorts all records chronologically.
+- Writes analytics.streamHistory and analytics.lastStreamArchiveJson.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+analytics.finalSummaryJson
+--------------------------------
+Finalized summary created by the preceding Stream End C# script.
+
+analytics.sessionStartLocal
+--------------------------------
+Local stream-start timestamp.
+
+analytics.currentCategory / currentStreamTitle
+--------------------------------
+Latest category and title from Track Stream Category.
+
+analytics.streamHistory
+--------------------------------
+Permanent list of normalized completed-stream records.
+
+analytics.monthlyHistory
+--------------------------------
+Legacy migration source; never deleted.
+
+analytics.lastStreamArchiveJson
+--------------------------------
+Most recently archived single record.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+PLACEMENT
+--------------------------------
+- Keep this as the second C# sub-action inside Stream End Protocols.
+
+SHARED DATA MODEL
+--------------------------------
+- Keep StreamRecord fields synchronized with weekly, monthly, and yearly
+  report generators.
+
+CATEGORY FALLBACK
+--------------------------------
+- Change “Unknown Category” only if another missing-category label is
+  preferred.
+
+RETENTION DEFINITION
+--------------------------------
+- Do not replace roster overlap with returning-attendee totals; those answer a
+  different question.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+NOTHING IS ARCHIVED
+--------------------------------
+- Confirm analytics.finalSummaryJson exists and the sub-action order is
+  correct.
+- Check the log for deserialization errors.
+
+DUPLICATE WARNING
+--------------------------------
+This is expected when the same finalized stream is processed again; the
+archive is intentionally unchanged.
+
+HISTORY JSON IS INVALID
+--------------------------------
+- The script refuses to overwrite invalid history.
+- Restore a backup or repair analytics.streamHistory first.
+
+CATEGORY IS UNKNOWN
+--------------------------------
+- Confirm Track Stream Category runs on Stream Online and Stream Update.
+
+==============================================================================
+*/

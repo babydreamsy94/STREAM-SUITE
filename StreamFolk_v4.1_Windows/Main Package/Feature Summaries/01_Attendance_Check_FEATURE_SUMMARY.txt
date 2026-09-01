@@ -1,0 +1,136 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+ATTENDANCE CHECK - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Records a viewer the first time they participate during a live session and
+adds the current date to that viewer’s long-term attendance history.
+
+It supports automatic First Words attendance and an optional Attendance Check
+redemption, prevents duplicate session entries, refunds duplicate redemptions
+when IDs are supplied, and welcomes new and returning attendees differently.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: VIEWER IDENTIFICATION
+--------------------------------
+- Reads the first available value from userLogin, userName, userDisplayName,
+  or user.
+- Trims spaces and @, then converts the Twitch login to lowercase.
+
+STEP 2: ELIGIBILITY FILTER
+--------------------------------
+- Stops when the username is blank or included in ExcludedUsers.
+- Uses the presence of message to distinguish the automatic chat path from a
+  reward path.
+
+STEP 3: SESSION ATTENDANCE
+--------------------------------
+- Loads SeenUsers and counts the viewer only once per stream.
+- Ignores duplicate chat events and cancels a duplicate redemption when
+  rewardId and redemptionId are available.
+
+STEP 4: HISTORY CLASSIFICATION
+--------------------------------
+- Loads AttendanceHistory and parses saved dates.
+- Classifies the viewer as new when no earlier date exists; otherwise
+  classifies the viewer as returning.
+- Adds today in YYYY-MM-DD format only when that calendar date is not already
+  stored.
+
+STEP 5: WELCOME RESPONSE
+--------------------------------
+- Sends the configured new-attendee or returning-attendee Twitch message.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+SeenUsers
+--------------------------------
+JSON dictionary of normalized usernames counted during the current stream.
+
+AttendanceHistory
+--------------------------------
+JSON dictionary mapping each normalized username to a list of attendance
+dates.
+
+ExcludedUsers
+--------------------------------
+Case-insensitive set of broadcaster, bot, and service accounts that should
+never count as attendees.
+
+rewardId / redemptionId
+--------------------------------
+Optional Streamer.bot reward values used to refund a duplicate Attendance
+Check redemption.
+
+message
+--------------------------------
+Its presence identifies an automatic chat or First Words attendance event.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+EXCLUDED USERS
+--------------------------------
+- Replace "streamername" with the broadcaster Twitch login in lowercase.
+- Replace "botname" with the custom bot login, or remove it when no separate
+  bot account is used.
+- Keep, remove, or add common service accounts so automated accounts are not
+  included in analytics.
+
+WELCOME MESSAGES
+--------------------------------
+- Edit the two CPH.SendMessage lines to match the channel tone.
+- Keep userNorm in the interpolated message so the attendee name is inserted.
+
+TRIGGER SETUP
+--------------------------------
+- The public import keeps the generic First Words trigger.
+- The creator reward ID was removed. Add the channel’s own Attendance Check
+  reward trigger after import.
+- A !checkin command can use this action too; the command message itself
+  normally also qualifies as First Words for a viewer’s first message.
+
+SHARED VARIABLES
+--------------------------------
+- Keep SeenUsers and AttendanceHistory unchanged unless every companion module
+  is updated.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+VIEWER IS NOT RECORDED
+--------------------------------
+- Confirm the trigger supplies a supported username argument.
+- Check that the login is not in ExcludedUsers.
+- Inspect SeenUsers for valid JSON.
+
+DUPLICATE REDEEM IS NOT REFUNDED
+--------------------------------
+- Confirm the action is attached to the reward redemption event.
+- Verify Streamer.bot supplies both rewardId and redemptionId.
+
+EVERYONE APPEARS NEW
+--------------------------------
+- Inspect AttendanceHistory for valid JSON and parseable dates.
+- Make sure no reset or test action clears long-term attendance history.
+
+WELCOME MESSAGE REPEATS
+--------------------------------
+- Confirm SeenUsers is persistent and contains the normalized user after the
+  first trigger.
+- A mid-stream SeenUsers reset can allow one same-day welcome to repeat.
+
+==============================================================================
+*/

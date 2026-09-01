@@ -1,0 +1,75 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+FIRST! STATS - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Answers the !fstats command with the invoking user’s lifetime FIRST! wins and
+current consecutive-win streak.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: IDENTIFY USER
+--------------------------------
+- Reads and normalizes the command user.
+
+STEP 2: LOAD STATISTICS
+--------------------------------
+- Loads FirstStats and rebuilds it with case-insensitive keys.
+- Reads the user_total and user_streak entries.
+
+STEP 3: FORMAT RESPONSE
+--------------------------------
+- Reports total wins and the appropriate streak wording.
+- Sends a friendly no-stats response when the user has never won.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+FirstStats
+--------------------------------
+Dictionary containing username_total and username_streak integer keys.
+
+user
+--------------------------------
+Invoker supplied by the imported !fstats command.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+RESPONSE TEXT
+--------------------------------
+- Edit the streak and no-stats messages without changing key names.
+
+COMMAND SETUP
+--------------------------------
+- Review and enable the imported !fstats command.
+- This action reads statistics only and does not alter FIRST! results.
+
+SHARED KEYS
+--------------------------------
+- Keep FirstStats synchronized with FIRST! Tracker and Reset FIRST!.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+USER HAS WINS BUT SHOWS ZERO
+--------------------------------
+- Confirm FIRST! Tracker writes the same normalized username.
+- Inspect FirstStats and keep the _total and _streak suffixes unchanged.
+
+COMMAND DOES NOT RUN
+--------------------------------
+- Enable the imported command and confirm its trigger points to FIRST! Stats.
+
+==============================================================================
+*/

@@ -1,0 +1,9 @@
+STREAMFOLK v4.1 - WINDOWS NOTES
+================================
+
+Target: Streamer.bot v1.0.7 on 64-bit Windows.
+
+- Import Main Package/StreamFolk_4.1_Main_Package_Windows.sb.
+- Compile each Execute C# Code sub-action before production use.
+- Stream End saves reports under your Documents/StreamSummaries folder unless you customize the code.
+- StreamFolk does not silently overwrite a customized Streamer.bot setup; review the import preview and preserve your long-term globals.

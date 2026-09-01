@@ -1,0 +1,95 @@
+/* 
+████████    ██████████  ████████    ██████████    ██████    ██      ██  ██████████    ██████    ██          ██      ██
+██              ██      ██      ██  ██          ██      ██  ████  ████  ██          ██      ██  ██          ██    ██  
+████████        ██      ████████    ████████    ██████████  ██  ██  ██  ████████    ██      ██  ██          ██████    
+        ██      ██      ██  ██      ██          ██      ██  ██      ██  ██          ██      ██  ██          ██    ██  
+████████        ██      ██    ██    ██████████  ██      ██  ██      ██  ██            ██████    ██████████  ██      ██
+
+==============================================================================
+PATS TRACKER - FEATURE SUMMARY
+==============================================================================
+
+==============================================================================
+🧠 PURPOSE
+==============================================================================
+Runs the !pat interaction, stores lifetime pats given and received, and
+chooses one playful response for self-pats or targeted pats.
+
+==============================================================================
+🔄 SYSTEM FLOW
+==============================================================================
+STEP 1: READ PARTICIPANTS
+--------------------------------
+- Reads the invoker and optional target.
+- A blank target becomes a self-pat.
+
+STEP 2: VERIFY TARGET ATTENDANCE
+--------------------------------
+- Requires a different named target to exist in SeenUsers.
+- Self-pats do not require a second attendee.
+
+STEP 3: UPDATE COUNTS
+--------------------------------
+- Increments the invoker in PatGiven.
+- Increments the target or self in PatCounts.
+
+STEP 4: SEND RESPONSE
+--------------------------------
+- Chooses from the self-pat or targeted-pat phrase pool and sends exactly one
+  message.
+
+==============================================================================
+📦 VARIABLE REFERENCE
+==============================================================================
+PatGiven
+--------------------------------
+Lifetime pats given per user.
+
+PatCounts
+--------------------------------
+Lifetime pats received per user.
+
+SeenUsers
+--------------------------------
+Attendance gate for another named target.
+
+rawInput
+--------------------------------
+Optional target after !pat.
+
+==============================================================================
+🎨 USER CUSTOMIZATION
+==============================================================================
+PHRASE POOLS
+--------------------------------
+- Edit self and targeted phrases while retaining user placeholders.
+
+COMMAND SETUP
+--------------------------------
+- Review and enable the imported !pat command.
+- Use Starts With mode for optional targets.
+
+SELF-PAT POLICY
+--------------------------------
+- Self-pats currently increment both given and received totals for the same
+  user.
+
+==============================================================================
+⚠️ TROUBLESHOOTING
+==============================================================================
+TARGETED PAT FAILS
+--------------------------------
+- Confirm the target checked in and exists in SeenUsers.
+- Use a single Twitch login.
+
+LEADERBOARD DOES NOT UPDATE
+--------------------------------
+- Keep PatGiven and PatCounts names unchanged.
+- Inspect both values for valid JSON.
+
+RESET LEAVES VALUES
+--------------------------------
+- Confirm the v4.1 Reset Pats action is installed and not an older version.
+
+==============================================================================
+*/
